@@ -1,0 +1,472 @@
+{
+ "overall": {
+  "n": 126,
+  "accuracy": 0.5794,
+  "under_tiered": 0.1667,
+  "over_tiered": 0.254,
+  "confusion": {
+   "simple": {
+    "simple": 26,
+    "mid": 11,
+    "complex": 5
+   },
+   "mid": {
+    "simple": 13,
+    "mid": 14,
+    "complex": 16
+   },
+   "complex": {
+    "simple": 1,
+    "mid": 7,
+    "complex": 33
+   }
+  }
+ },
+ "by_source": {
+  "csv": {
+   "n": 24,
+   "accuracy": 0.4167,
+   "under_tiered": 0.0,
+   "over_tiered": 0.5833,
+   "confusion": {
+    "simple": {
+     "simple": 0,
+     "mid": 6,
+     "complex": 2
+    },
+    "mid": {
+     "simple": 0,
+     "mid": 2,
+     "complex": 6
+    },
+    "complex": {
+     "simple": 0,
+     "mid": 0,
+     "complex": 8
+    }
+   }
+  },
+  "json": {
+   "n": 12,
+   "accuracy": 0.3333,
+   "under_tiered": 0.0,
+   "over_tiered": 0.6667,
+   "confusion": {
+    "simple": {
+     "simple": 1,
+     "mid": 2,
+     "complex": 1
+    },
+    "mid": {
+     "simple": 0,
+     "mid": 0,
+     "complex": 5
+    },
+    "complex": {
+     "simple": 0,
+     "mid": 0,
+     "complex": 3
+    }
+   }
+  },
+  "own": {
+   "n": 90,
+   "accuracy": 0.6556,
+   "under_tiered": 0.2333,
+   "over_tiered": 0.1111,
+   "confusion": {
+    "simple": {
+     "simple": 25,
+     "mid": 3,
+     "complex": 2
+    },
+    "mid": {
+     "simple": 13,
+     "mid": 12,
+     "complex": 5
+    },
+    "complex": {
+     "simple": 1,
+     "mid": 7,
+     "complex": 22
+    }
+   }
+  }
+ },
+ "batch_ms_per_item": 12.81,
+ "single_call_ms_median": 32.0,
+ "misses": [
+  {
+   "source": "own",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.41,
+   "task": "What does `git stash pop` do?"
+  },
+  {
+   "source": "own",
+   "gold": "simple",
+   "pred": "complex",
+   "confidence": 0.464,
+   "task": "How do I create a virtual environment in Python?"
+  },
+  {
+   "source": "own",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.348,
+   "task": "Write a SQL query to find duplicate emails in the users table"
+  },
+  {
+   "source": "own",
+   "gold": "simple",
+   "pred": "complex",
+   "confidence": 0.464,
+   "task": "How do I kill the process using port 3000?"
+  },
+  {
+   "source": "own",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.508,
+   "task": "Delete the commented-out code block at the bottom of routes.py"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.525,
+   "task": "Add a 'last updated' timestamp to the profile page that updates when the user saves"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.513,
+   "task": "The /search endpoint ignores the `sort` parameter. Make it sort by price or rating."
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.463,
+   "task": "Add a copy-to-clipboard button next to each code block in the docs site"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.546,
+   "task": "Add a `created_by` field to tasks and show the creator's name in the task list"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.426,
+   "task": "Make the settings form warn the user if they try to leave with unsaved changes"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.445,
+   "task": "The weekly digest email is sent twice to users with two devices registered. Fix it."
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.389,
+   "task": "Add an option to download the report as Excel in addition to CSV"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.539,
+   "task": "The product price displays as 19.999999 sometimes. Fix the rounding and format it as currency."
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.435,
+   "task": "Add a `--since` date filter to the `export-logs` command"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.365,
+   "task": "Create an endpoint that lets users upload an avatar and store it in S3"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.373,
+   "task": "Add basic auth to the staging environment's admin routes"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.373,
+   "task": "Replace the hand-written date formatting in four components with date-fns"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.342,
+   "task": "Add a test that fails if any API route is missing an auth check, then fix the two routes it flags"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.486,
+   "task": "The CSV parser chokes on files with a BOM. Handle it."
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.411,
+   "task": "Add tags to blog posts with a filter on the posts index page"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.493,
+   "task": "Write a migration that splits the `name` column into `first_name` and `last_name` and backfills it"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.362,
+   "task": "Implement a `/stats` admin endpoint showing user counts by signup month"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.483,
+   "task": "The scheduler ignores daylight saving time and runs an hour late in summer. Fix it."
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.489,
+   "task": "Some invoices have the wrong totals, but only for customers created before 2023. Find out why and repair the data."
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.396,
+   "task": "The service occasionally returns another user's data. Investigate urgently."
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.356,
+   "task": "Move the app from Heroku to AWS with infrastructure as code"
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "simple",
+   "confidence": 0.42,
+   "task": "Startup time of the CLI is 3 seconds. Get it under 300ms."
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.441,
+   "task": "Some websocket messages arrive out of order or get lost under load. Diagnose and redesign the delivery."
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.414,
+   "task": "Implement fine-grained, row-level permissions in the reporting module"
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.489,
+   "task": "The mobile app drains battery fast. Profile it and fix the background work."
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.373,
+   "task": "Implement a search-as-you-type experience over 50 million records with typo tolerance"
+  },
+  {
+   "source": "csv",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.408,
+   "task": "Add structured tracing across an asynchronous workflow. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.504,
+   "task": "Implement a data quality check pipeline for incoming records. Work within an existing codebase using Python/Pandas. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.503,
+   "task": "Create a Docker Compose setup for local development. Work within an existing codebase using Docker. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.466,
+   "task": "Build an API endpoint to export filtered records to XLSX. Work within an existing codebase using Django. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.487,
+   "task": "Add concurrency control to prevent lost updates. Work within an existing codebase using Django/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.532,
+   "task": "Refactor duplicated API error handling into shared middleware. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "complex",
+   "confidence": 0.403,
+   "task": "Add a last-updated label to a detail page. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.403,
+   "task": "Add a health-check endpoint. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.386,
+   "task": "Trim whitespace from a search query. Work within an existing codebase using JavaScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "complex",
+   "confidence": 0.392,
+   "task": "Add a tooltip to an icon-only button. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.385,
+   "task": "Remove an unused import. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.418,
+   "task": "Add a default value to an optional configuration field. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.455,
+   "task": "Fix an off-by-one error in pagination. Work within an existing codebase using TypeScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.435,
+   "task": "Validate that a quantity is a positive integer. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "json",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.539,
+   "task": "Build user profile edit form with synchronous field-level validation."
+  },
+  {
+   "source": "json",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.416,
+   "task": "Resolve N+1 query bottleneck in nested object serialization using eager joins."
+  },
+  {
+   "source": "json",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.399,
+   "task": "Implement responsive navigation sidebar with active route highlighting."
+  },
+  {
+   "source": "json",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.447,
+   "task": "Build thread-safe in-memory LRU cache with TTL expiration and lock management."
+  },
+  {
+   "source": "json",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.69,
+   "task": "Build React autocomplete search input with debounced API requests."
+  },
+  {
+   "source": "json",
+   "gold": "simple",
+   "pred": "complex",
+   "confidence": 0.507,
+   "task": "Write a function to deeply merge two JSON configuration objects."
+  },
+  {
+   "source": "json",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.372,
+   "task": "Write pytest unit tests covering edge cases for string normalization."
+  },
+  {
+   "source": "json",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.528,
+   "task": "Fix off-by-one error in pagination logic when calculating total pages."
+  }
+ ],
+ "model": "convaiinnovations/laya"
+}

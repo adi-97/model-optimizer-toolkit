@@ -1,0 +1,31 @@
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|##########| 5/5 [00:00<00:00, 424.85it/s]
+eval items 126 from data/eval.jsonl (skipped {}, 0 overlapping training/calibration items)
+train items 319, calibration items 35, eval items 126 (data/eval.jsonl), skipped {}, device cuda
+optimizer budget: 319 train item(s), effective batch up to 8 (micro_batch 8 x grad_accum 1), 400 optimizer updates over 10 epoch(s)
+D:\Applications\laya-tier\.venv\Lib\site-packages\torch\optim\lr_scheduler.py:227: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  warnings.warn(
+epoch 1/10 mean loss 0.7313
+epoch 2/10 mean loss 0.7207
+epoch 3/10 mean loss 0.7036
+epoch 4/10 mean loss 0.6360
+epoch 5/10 mean loss 0.6467
+epoch 6/10 mean loss 0.6685
+epoch 7/10 mean loss 0.6781
+epoch 8/10 mean loss 0.7377
+epoch 9/10 mean loss 0.7536
+epoch 10/10 mean loss 0.7085
+D:\Applications\laya-model\laya\train_cli.py:221: RuntimeWarning: laya.train: choice calibration: fitted on only 35 calibration items
+  summary = finetune(
+
+=== Evaluation (before vs after fine-tuning on 126 held-out items from data/eval.jsonl) ===
+Metric                 Before         After          Delta         
+-----------------------------------------------------------------
+Accuracy               0.5794         0.5873         +0.0079       
+Loss                   0.9105         0.8123         -0.0982       
+ECE                    0.1244         0.0657         -0.0587       
+Brier (multi-class)    0.5452         0.4873         -0.0579       
+Brier (top-1)          0.2389         0.2093         -0.0296       
+Mean Confidence        0.4736         0.5856         +0.1120       
+-----------------------------------------------------------------
+
+Training complete! Model saved to models/tier-frozen-v1

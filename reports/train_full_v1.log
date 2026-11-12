@@ -1,0 +1,27 @@
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|##########| 5/5 [00:00<00:00, 2502.87it/s]
+eval items 126 from data/eval.jsonl (skipped {}, 0 overlapping training/calibration items)
+train items 319, calibration items 35, eval items 126 (data/eval.jsonl), skipped {}, device cpu
+optimizer budget: 319 train item(s), effective batch up to 8 (micro_batch 8 x grad_accum 1), 240 optimizer updates over 6 epoch(s)
+epoch 1/6 mean loss 0.6046
+epoch 2/6 mean loss 0.3079
+epoch 3/6 mean loss 0.4583
+epoch 4/6 mean loss 0.1000
+epoch 5/6 mean loss 0.0138
+epoch 6/6 mean loss 0.0055
+D:\Applications\laya-model\laya\train_cli.py:221: RuntimeWarning: laya.train: choice calibration: fitted on only 35 calibration items
+  summary = finetune(
+D:\Applications\laya-model\laya\train_cli.py:221: RuntimeWarning: laya.train: choice calibration: the fitted temperature 5 is on the [0.5, 5] clamp
+  summary = finetune(
+
+=== Evaluation (before vs after fine-tuning on 126 held-out items from data/eval.jsonl) ===
+Metric                 Before         After          Delta         
+-----------------------------------------------------------------
+Accuracy               0.5794         0.8651         +0.2857       
+Loss                   0.9105         0.4505         -0.4600       
+ECE                    0.1244         0.0824         -0.0420       
+Brier (multi-class)    0.5452         0.2172         -0.3280       
+Brier (top-1)          0.2389         0.1047         -0.1342       
+Mean Confidence        0.4736         0.9475         +0.4739       
+-----------------------------------------------------------------
+
+Training complete! Model saved to models/tier-full-v1

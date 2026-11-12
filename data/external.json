@@ -1,0 +1,1622 @@
+[
+ {
+  "source": "csv",
+  "id": "C016",
+  "key": "Implement exactly-once business effects over at-least-once message delivery",
+  "text": "Implement exactly-once business effects over at-least-once message delivery. Work within an existing codebase using Python/Kafka/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "C021",
+  "key": "Design a lakehouse ingestion framework for evolving source schemas",
+  "text": "Design a lakehouse ingestion framework for evolving source schemas. Work within an existing codebase using Python/Spark/Iceberg. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "C020",
+  "key": "Build a high-throughput API gateway with quotas and adaptive rate limits",
+  "text": "Build a high-throughput API gateway with quotas and adaptive rate limits. Work within an existing codebase using Go. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "C005",
+  "key": "Build a feature-flag platform with targeting and gradual rollouts",
+  "text": "Build a feature-flag platform with targeting and gradual rollouts. Work within an existing codebase using Go/PostgreSQL/Redis. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "C002",
+  "key": "Build an event-driven document processing platform",
+  "text": "Build an event-driven document processing platform. Work within an existing codebase using Python/Kafka/S3. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "C029",
+  "key": "Build a secure enterprise audit and compliance evidence platform",
+  "text": "Build a secure enterprise audit and compliance evidence platform. Work within an existing codebase using Python/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "C019",
+  "key": "Develop a privacy-aware data deletion system across services",
+  "text": "Develop a privacy-aware data deletion system across services. Work within an existing codebase using Python/Kafka. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "C018",
+  "key": "Create a workflow engine with visual DAG editing and execution",
+  "text": "Create a workflow engine with visual DAG editing and execution. Work within an existing codebase using React/Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "C032",
+  "key": "Design a resilient integration platform for unreliable third-party APIs",
+  "text": "Design a resilient integration platform for unreliable third-party APIs. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C033",
+  "key": "Implement a distributed file-processing service for very large uploads",
+  "text": "Implement a distributed file-processing service for very large uploads. Work within an existing codebase using Go/S3/Kafka. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C012",
+  "key": "Create a policy engine for configurable business rules",
+  "text": "Create a policy engine for configurable business rules. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C006",
+  "key": "Design a scalable search service for millions of documents",
+  "text": "Design a scalable search service for millions of documents. Work within an existing codebase using Python/OpenSearch. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C008",
+  "key": "Build a real-time analytics pipeline with late-arriving events",
+  "text": "Build a real-time analytics pipeline with late-arriving events. Work within an existing codebase using Python/Kafka/Flink. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C009",
+  "key": "Implement a distributed task scheduler with leader election",
+  "text": "Implement a distributed task scheduler with leader election. Work within an existing codebase using Go/Redis/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C023",
+  "key": "Build a document extraction pipeline with confidence-based human review",
+  "text": "Build a document extraction pipeline with confidence-based human review. Work within an existing codebase using Python/OCR/LLM. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C037",
+  "key": "Implement a policy-driven PII detection and redaction service",
+  "text": "Implement a policy-driven PII detection and redaction service. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C026",
+  "key": "Build a multi-tenant billing and usage metering platform",
+  "text": "Build a multi-tenant billing and usage metering platform. Work within an existing codebase using Python/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C028",
+  "key": "Implement a CDC-based cache invalidation architecture",
+  "text": "Implement a CDC-based cache invalidation architecture. Work within an existing codebase using PostgreSQL/Kafka/Redis. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C011",
+  "key": "Build an ML inference service with model versioning and canary deployment",
+  "text": "Build an ML inference service with model versioning and canary deployment. Work within an existing codebase using Python/FastAPI/Kubernetes. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C030",
+  "key": "Create a Kubernetes operator for managing tenant workloads",
+  "text": "Create a Kubernetes operator for managing tenant workloads. Work within an existing codebase using Go/Kubernetes. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C007",
+  "key": "Create a secure identity service supporting OAuth2 and SSO",
+  "text": "Create a secure identity service supporting OAuth2 and SSO. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C038",
+  "key": "Build a globally consistent identifier and deduplication service",
+  "text": "Build a globally consistent identifier and deduplication service. Work within an existing codebase using Go/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C040",
+  "key": "Architect a cost-aware autoscaling system for queue-driven workloads",
+  "text": "Architect a cost-aware autoscaling system for queue-driven workloads. Work within an existing codebase using Kubernetes/KEDA. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C027",
+  "key": "Design a scalable feature store for batch and online ML features",
+  "text": "Design a scalable feature store for batch and online ML features. Work within an existing codebase using Python/Redis/Spark. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C024",
+  "key": "Create a cross-service saga for inventory reservation and order fulfillment",
+  "text": "Create a cross-service saga for inventory reservation and order fulfillment. Work within an existing codebase using Java/Kafka. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M022",
+  "key": "Add tenant scoping to all repository queries",
+  "text": "Add tenant scoping to all repository queries. Work within an existing codebase using Python/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C001",
+  "key": "Design and implement a multi-tenant workflow orchestration service",
+  "text": "Design and implement a multi-tenant workflow orchestration service. Work within an existing codebase using Python/FastAPI/PostgreSQL/Redis. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C014",
+  "key": "Build a data lineage and impact analysis service",
+  "text": "Build a data lineage and impact analysis service. Work within an existing codebase using Python/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C025",
+  "key": "Implement a secrets management integration with automatic rotation",
+  "text": "Implement a secrets management integration with automatic rotation. Work within an existing codebase using Python/AWS. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C003",
+  "key": "Migrate a monolithic application to independently deployable services",
+  "text": "Migrate a monolithic application to independently deployable services. Work within an existing codebase using Python/Kubernetes. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C039",
+  "key": "Create a platform for safely replaying production events into staging",
+  "text": "Create a platform for safely replaying production events into staging. Work within an existing codebase using Python/Kafka. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C017",
+  "key": "Build a secure sandbox for executing untrusted user code",
+  "text": "Build a secure sandbox for executing untrusted user code. Work within an existing codebase using Go/Linux. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C010",
+  "key": "Design a zero-downtime database migration for a high-traffic service",
+  "text": "Design a zero-downtime database migration for a high-traffic service. Work within an existing codebase using PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C022",
+  "key": "Implement a recommendation system from offline training to online serving",
+  "text": "Implement a recommendation system from offline training to online serving. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C034",
+  "key": "Build a schema registry and compatibility enforcement workflow",
+  "text": "Build a schema registry and compatibility enforcement workflow. Work within an existing codebase using Python/Kafka. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C035",
+  "key": "Create an end-to-end ML monitoring system for drift and data quality",
+  "text": "Create an end-to-end ML monitoring system for drift and data quality. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C015",
+  "key": "Design a resilient multi-region API architecture",
+  "text": "Design a resilient multi-region API architecture. Work within an existing codebase using AWS/Kubernetes. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C031",
+  "key": "Build an experimentation platform with statistical guardrails",
+  "text": "Build an experimentation platform with statistical guardrails. Work within an existing codebase using Python/React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C004",
+  "key": "Implement a fault-tolerant payment processing workflow",
+  "text": "Implement a fault-tolerant payment processing workflow. Work within an existing codebase using Java/Spring/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C036",
+  "key": "Design a fault-injection test harness for distributed services",
+  "text": "Design a fault-injection test harness for distributed services. Work within an existing codebase using Python/Kubernetes. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "C013",
+  "key": "Implement end-to-end observability for a microservice ecosystem",
+  "text": "Implement end-to-end observability for a microservice ecosystem. Work within an existing codebase using OpenTelemetry/Kubernetes. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M024",
+  "key": "Add structured tracing across an asynchronous workflow",
+  "text": "Add structured tracing across an asynchronous workflow. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "M006",
+  "key": "Implement search with filters and sorting for an orders table",
+  "text": "Implement search with filters and sorting for an orders table. Work within an existing codebase using React/FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "M026",
+  "key": "Implement a data quality check pipeline for incoming records",
+  "text": "Implement a data quality check pipeline for incoming records. Work within an existing codebase using Python/Pandas. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "M033",
+  "key": "Create a Docker Compose setup for local development",
+  "text": "Create a Docker Compose setup for local development. Work within an existing codebase using Docker. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "M017",
+  "key": "Build an API endpoint to export filtered records to XLSX",
+  "text": "Build an API endpoint to export filtered records to XLSX. Work within an existing codebase using Django. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "M040",
+  "key": "Add concurrency control to prevent lost updates",
+  "text": "Add concurrency control to prevent lost updates. Work within an existing codebase using Django/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "M037",
+  "key": "Add encryption for selected sensitive fields at rest",
+  "text": "Add encryption for selected sensitive fields at rest. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "M005",
+  "key": "Refactor duplicated API error handling into shared middleware",
+  "text": "Refactor duplicated API error handling into shared middleware. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "M008",
+  "key": "Create a webhook receiver with signature verification",
+  "text": "Create a webhook receiver with signature verification. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M034",
+  "key": "Add contract tests for a service consuming an external API",
+  "text": "Add contract tests for a service consuming an external API. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M020",
+  "key": "Migrate a JSON settings column into normalized tables",
+  "text": "Migrate a JSON settings column into normalized tables. Work within an existing codebase using PostgreSQL/Django. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M004",
+  "key": "Create a background job to generate monthly usage reports",
+  "text": "Create a background job to generate monthly usage reports. Work within an existing codebase using Python/Celery. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M014",
+  "key": "Create a reusable React form component with schema validation",
+  "text": "Create a reusable React form component with schema validation. Work within an existing codebase using React/TypeScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M010",
+  "key": "Add audit logging for sensitive account changes",
+  "text": "Add audit logging for sensitive account changes. Work within an existing codebase using Django/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M023",
+  "key": "Implement a notification preferences page",
+  "text": "Implement a notification preferences page. Work within an existing codebase using React/Django. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M012",
+  "key": "Write integration tests for an OAuth callback flow",
+  "text": "Write integration tests for an OAuth callback flow. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M032",
+  "key": "Implement server-side filtering for a large dataset",
+  "text": "Implement server-side filtering for a large dataset. Work within an existing codebase using FastAPI/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M015",
+  "key": "Implement rate limiting for login attempts",
+  "text": "Implement rate limiting for login attempts. Work within an existing codebase using FastAPI/Redis. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M030",
+  "key": "Add an incremental sync process for a third-party data source",
+  "text": "Add an incremental sync process for a third-party data source. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M016",
+  "key": "Add a scheduled cleanup task for expired temporary files",
+  "text": "Add a scheduled cleanup task for expired temporary files. Work within an existing codebase using Python/Celery. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M029",
+  "key": "Implement an admin page for reviewing failed background jobs",
+  "text": "Implement an admin page for reviewing failed background jobs. Work within an existing codebase using React/FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M036",
+  "key": "Build a dashboard chart showing weekly active users",
+  "text": "Build a dashboard chart showing weekly active users. Work within an existing codebase using React/SQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M038",
+  "key": "Implement a versioned REST endpoint while preserving v1 behavior",
+  "text": "Implement a versioned REST endpoint while preserving v1 behavior. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M002",
+  "key": "Build a CSV import endpoint with row-level validation",
+  "text": "Build a CSV import endpoint with row-level validation. Work within an existing codebase using Django. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M035",
+  "key": "Implement a dead-letter flow for repeatedly failing tasks",
+  "text": "Implement a dead-letter flow for repeatedly failing tasks. Work within an existing codebase using Python/Celery. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M011",
+  "key": "Implement soft deletion for customer records",
+  "text": "Implement soft deletion for customer records. Work within an existing codebase using Django. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M007",
+  "key": "Add Redis caching to a frequently accessed read endpoint",
+  "text": "Add Redis caching to a frequently accessed read endpoint. Work within an existing codebase using Python/Redis. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M031",
+  "key": "Improve accessibility of a multi-step form",
+  "text": "Improve accessibility of a multi-step form. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M027",
+  "key": "Add database transaction handling to a multi-step service operation",
+  "text": "Add database transaction handling to a multi-step service operation. Work within an existing codebase using Django/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M018",
+  "key": "Add optimistic UI updates to a task status control",
+  "text": "Add optimistic UI updates to a task status control. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M039",
+  "key": "Create a command-line tool to reconcile two CSV datasets",
+  "text": "Create a command-line tool to reconcile two CSV datasets. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M009",
+  "key": "Build a file upload flow with progress and server-side validation",
+  "text": "Build a file upload flow with progress and server-side validation. Work within an existing codebase using React/FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M013",
+  "key": "Optimize a slow SQL query used by the dashboard",
+  "text": "Optimize a slow SQL query used by the dashboard. Work within an existing codebase using PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M025",
+  "key": "Build a bulk update endpoint with per-item results",
+  "text": "Build a bulk update endpoint with per-item results. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M001",
+  "key": "Implement cursor-based pagination for an activity feed",
+  "text": "Implement cursor-based pagination for an activity feed. Work within an existing codebase using FastAPI/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M028",
+  "key": "Create a reusable API client with token refresh",
+  "text": "Create a reusable API client with token refresh. Work within an existing codebase using TypeScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M021",
+  "key": "Create a duplicate detection report for uploaded invoices",
+  "text": "Create a duplicate detection report for uploaded invoices. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M019",
+  "key": "Implement a configurable retry policy for an external API client",
+  "text": "Implement a configurable retry policy for an external API client. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "M003",
+  "key": "Add role-based access control to project routes",
+  "text": "Add role-based access control to project routes. Work within an existing codebase using Python/React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S032",
+  "key": "Add a last-updated label to a detail page",
+  "text": "Add a last-updated label to a detail page. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "S011",
+  "key": "Add a health-check endpoint",
+  "text": "Add a health-check endpoint. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "S014",
+  "key": "Trim whitespace from a search query",
+  "text": "Trim whitespace from a search query. Work within an existing codebase using JavaScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "S028",
+  "key": "Add a tooltip to an icon-only button",
+  "text": "Add a tooltip to an icon-only button. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "S026",
+  "key": "Remove an unused import",
+  "text": "Remove an unused import. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "S004",
+  "key": "Add a default value to an optional configuration field",
+  "text": "Add a default value to an optional configuration field. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "S006",
+  "key": "Fix an off-by-one error in pagination",
+  "text": "Fix an off-by-one error in pagination. Work within an existing codebase using TypeScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "S029",
+  "key": "Validate that a quantity is a positive integer",
+  "text": "Validate that a quantity is a positive integer. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "csv",
+  "id": "S017",
+  "key": "Prevent division by zero in a utility function",
+  "text": "Prevent division by zero in a utility function. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S010",
+  "key": "Sort a list of records by creation date",
+  "text": "Sort a list of records by creation date. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S009",
+  "key": "Handle a missing optional API field",
+  "text": "Handle a missing optional API field. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S036",
+  "key": "Escape user-provided text before rendering HTML",
+  "text": "Escape user-provided text before rendering HTML. Work within an existing codebase using JavaScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S021",
+  "key": "Add a command-line flag for verbose output",
+  "text": "Add a command-line flag for verbose output. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S035",
+  "key": "Limit an API list endpoint to 50 records by default",
+  "text": "Limit an API list endpoint to 50 records by default. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S033",
+  "key": "Make a utility function deterministic",
+  "text": "Make a utility function deterministic. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S022",
+  "key": "Make a table header sticky",
+  "text": "Make a table header sticky. Work within an existing codebase using CSS. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S015",
+  "key": "Return HTTP 404 for an unknown resource",
+  "text": "Return HTTP 404 for an unknown resource. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S030",
+  "key": "Add a database index to a frequently filtered column",
+  "text": "Add a database index to a frequently filtered column. Work within an existing codebase using SQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S003",
+  "key": "Rename a function and update its call sites",
+  "text": "Rename a function and update its call sites. Work within an existing codebase using JavaScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S019",
+  "key": "Add a timestamp to structured log output",
+  "text": "Add a timestamp to structured log output. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S013",
+  "key": "Add a copy-to-clipboard action",
+  "text": "Add a copy-to-clipboard action. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S027",
+  "key": "Format a monetary value to two decimal places",
+  "text": "Format a monetary value to two decimal places. Work within an existing codebase using JavaScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S023",
+  "key": "Check that an uploaded file has an allowed extension",
+  "text": "Check that an uploaded file has an allowed extension. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S038",
+  "key": "Return an empty array instead of null for no items",
+  "text": "Return an empty array instead of null for no items. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S040",
+  "key": "Document the environment variable used for the API URL",
+  "text": "Document the environment variable used for the API URL. Work within an existing codebase using Markdown. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S031",
+  "key": "Handle a null response from a helper",
+  "text": "Handle a null response from a helper. Work within an existing codebase using TypeScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S025",
+  "key": "Ensure an API response always includes a status field",
+  "text": "Ensure an API response always includes a status field. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S039",
+  "key": "Add a unique constraint to an email column",
+  "text": "Add a unique constraint to an email column. Work within an existing codebase using SQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S005",
+  "key": "Write a unit test for a date formatting helper",
+  "text": "Write a unit test for a date formatting helper. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S002",
+  "key": "Add input validation for an empty username",
+  "text": "Add input validation for an empty username. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S008",
+  "key": "Make a form field required",
+  "text": "Make a form field required. Work within an existing codebase using HTML/JavaScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S037",
+  "key": "Add a confirmation prompt before deleting a record",
+  "text": "Add a confirmation prompt before deleting a record. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S020",
+  "key": "Convert a comma-separated string into a list",
+  "text": "Convert a comma-separated string into a list. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S012",
+  "key": "Update a README setup command",
+  "text": "Update a README setup command. Work within an existing codebase using Markdown. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S007",
+  "key": "Add a loading indicator to a submit button",
+  "text": "Add a loading indicator to a submit button. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S001",
+  "key": "Fix a typo in a user-facing error message",
+  "text": "Fix a typo in a user-facing error message. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S024",
+  "key": "Add a retry message to a failed network request",
+  "text": "Add a retry message to a failed network request. Work within an existing codebase using JavaScript. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S016",
+  "key": "Add a maximum length check to a title field",
+  "text": "Add a maximum length check to a title field. Work within an existing codebase using Django. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S018",
+  "key": "Display an empty-state message when there are no results",
+  "text": "Display an empty-state message when there are no results. Work within an existing codebase using React. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "csv",
+  "id": "S034",
+  "key": "Add a test for case-insensitive matching",
+  "text": "Add a test for case-insensitive matching. Work within an existing codebase using Python. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_007",
+  "key": "Optimize heavy web application frontend bundle size via code splitting.",
+  "text": "Optimize heavy web application frontend bundle size via code splitting.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "complex_018",
+  "key": "Sanitize user-generated input across all raw query execution paths against SQLi.",
+  "text": "Sanitize user-generated input across all raw query execution paths against SQLi.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "complex_011",
+  "key": "Migrate monolithic notification service into event-driven pub-sub architecture.",
+  "text": "Migrate monolithic notification service into event-driven pub-sub architecture.",
+  "original": "complex",
+  "label": "complex",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "complex_009",
+  "key": "Refactor memory-intensive data processing pipeline to stream chunked DataFrames.",
+  "text": "Refactor memory-intensive data processing pipeline to stream chunked DataFrames.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_019",
+  "key": "Implement strict Content Security Policy (CSP) headers and audit script execution.",
+  "text": "Implement strict Content Security Policy (CSP) headers and audit script execution.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_012",
+  "key": "Refactor monolithic monolith codebase into domain-driven modular structure.",
+  "text": "Refactor monolithic monolith codebase into domain-driven modular structure.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_017",
+  "key": "Implement field-level AES-256 encryption for PII compliance in database layer.",
+  "text": "Implement field-level AES-256 encryption for PII compliance in database layer.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_020",
+  "key": "Build audit logging system recording immutable administrative actions.",
+  "text": "Build audit logging system recording immutable administrative actions.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_016",
+  "key": "Implement full OAuth2 / OIDC authentication flow with PKCE and token rotation.",
+  "text": "Implement full OAuth2 / OIDC authentication flow with PKCE and token rotation.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_014",
+  "key": "Design and implement full database schema migration from MongoDB to PostgreSQL.",
+  "text": "Design and implement full database schema migration from MongoDB to PostgreSQL.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_004",
+  "key": "Build WebSocket server handling concurrent real-time client state subscriptions.",
+  "text": "Build WebSocket server handling concurrent real-time client state subscriptions.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_015",
+  "key": "Implement resilient saga pattern for multi-service transactional rollbacks.",
+  "text": "Implement resilient saga pattern for multi-service transactional rollbacks.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_008",
+  "key": "Implement multi-tiered caching strategy (Redis + local memory) for API responses.",
+  "text": "Implement multi-tiered caching strategy (Redis + local memory) for API responses.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_013",
+  "key": "Implement plugin-based architecture for third-party payment gateway integrations.",
+  "text": "Implement plugin-based architecture for third-party payment gateway integrations.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_010",
+  "key": "Optimize database indexing strategies for high-frequency write/read workloads.",
+  "text": "Optimize database indexing strategies for high-frequency write/read workloads.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_001",
+  "key": "Implement distributed task processing queue using Redis and Celery with retries.",
+  "text": "Implement distributed task processing queue using Redis and Celery with retries.",
+  "original": "complex",
+  "label": "complex",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_009",
+  "key": "Build user profile edit form with synchronous field-level validation.",
+  "text": "Build user profile edit form with synchronous field-level validation.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "complex_006",
+  "key": "Resolve N+1 query bottleneck in nested object serialization using eager joins.",
+  "text": "Resolve N+1 query bottleneck in nested object serialization using eager joins.",
+  "original": "complex",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "mid_010",
+  "key": "Implement responsive navigation sidebar with active route highlighting.",
+  "text": "Implement responsive navigation sidebar with active route highlighting.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "complex_002",
+  "key": "Build thread-safe in-memory LRU cache with TTL expiration and lock management.",
+  "text": "Build thread-safe in-memory LRU cache with TTL expiration and lock management.",
+  "original": "complex",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "mid_006",
+  "key": "Build React autocomplete search input with debounced API requests.",
+  "text": "Build React autocomplete search input with debounced API requests.",
+  "original": "mid",
+  "label": "mid",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "mid_012",
+  "key": "Implement soft-delete query filter using Prisma ORM middleware.",
+  "text": "Implement soft-delete query filter using Prisma ORM middleware.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_011",
+  "key": "Write SQLAlchemy migration adding composite indexes on active session tables.",
+  "text": "Write SQLAlchemy migration adding composite indexes on active session tables.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_014",
+  "key": "Create database seed script generating realistic mock transactional data.",
+  "text": "Create database seed script generating realistic mock transactional data.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_003",
+  "key": "Implement optimistic concurrency control mechanism for concurrent DB edits.",
+  "text": "Implement optimistic concurrency control mechanism for concurrent DB edits.",
+  "original": "complex",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_015",
+  "key": "Implement connection pool setup with automatic reconnect logic.",
+  "text": "Implement connection pool setup with automatic reconnect logic.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_016",
+  "key": "Write Express.js JWT authentication middleware verifying Bearer tokens.",
+  "text": "Write Express.js JWT authentication middleware verifying Bearer tokens.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "complex_005",
+  "key": "Implement batch async request throttling with exponential backoff and jitter.",
+  "text": "Implement batch async request throttling with exponential backoff and jitter.",
+  "original": "complex",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_004",
+  "key": "Implement DELETE endpoint with soft-deletion handling and status response.",
+  "text": "Implement DELETE endpoint with soft-deletion handling and status response.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_001",
+  "key": "Implement RESTful POST endpoint for user registration with Pydantic validation.",
+  "text": "Implement RESTful POST endpoint for user registration with Pydantic validation.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_008",
+  "key": "Create modal dialog component with accessible keyboard navigation and focus lock.",
+  "text": "Create modal dialog component with accessible keyboard navigation and focus lock.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_002",
+  "key": "Add GET endpoint with pagination, filtering, and sorting parameters.",
+  "text": "Add GET endpoint with pagination, filtering, and sorting parameters.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_017",
+  "key": "Implement rate-limiting middleware using token bucket algorithm.",
+  "text": "Implement rate-limiting middleware using token bucket algorithm.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_019",
+  "key": "Implement CORS policies and security header configuration.",
+  "text": "Implement CORS policies and security header configuration.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_018",
+  "key": "Build structured HTTP request/response logging middleware with request IDs.",
+  "text": "Build structured HTTP request/response logging middleware with request IDs.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_020",
+  "key": "Write RBAC middleware restricting access based on user roles.",
+  "text": "Write RBAC middleware restricting access based on user roles.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_005",
+  "key": "Build file upload endpoint supporting multipart/form-data and cloud storage.",
+  "text": "Build file upload endpoint supporting multipart/form-data and cloud storage.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_003",
+  "key": "Create PATCH endpoint to update user preferences in PostgreSQL database.",
+  "text": "Create PATCH endpoint to update user preferences in PostgreSQL database.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_007",
+  "key": "Implement dynamic data table with column sorting and pagination controls.",
+  "text": "Implement dynamic data table with column sorting and pagination controls.",
+  "original": "mid",
+  "label": "mid",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_012",
+  "key": "Write a function to deeply merge two JSON configuration objects.",
+  "text": "Write a function to deeply merge two JSON configuration objects.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "simple_006",
+  "key": "Write pytest unit tests covering edge cases for string normalization.",
+  "text": "Write pytest unit tests covering edge cases for string normalization.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "simple_019",
+  "key": "Convert legacy class component syntax to modern functional syntax.",
+  "text": "Convert legacy class component syntax to modern functional syntax.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "simple_001",
+  "key": "Fix off-by-one error in pagination logic when calculating total pages.",
+  "text": "Fix off-by-one error in pagination logic when calculating total pages.",
+  "original": "simple",
+  "label": "simple",
+  "split": "eval"
+ },
+ {
+  "source": "json",
+  "id": "simple_004",
+  "key": "Fix unclosed parenthetical operator in mathematical evaluation helper.",
+  "text": "Fix unclosed parenthetical operator in mathematical evaluation helper.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_018",
+  "key": "Replace raw dictionary accesses with get() and default values.",
+  "text": "Replace raw dictionary accesses with get() and default values.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_005",
+  "key": "Fix infinite loop condition in retry logic for failed network requests.",
+  "text": "Fix infinite loop condition in retry logic for failed network requests.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_007",
+  "key": "Write Jest test suite validating date formatting utility outputs.",
+  "text": "Write Jest test suite validating date formatting utility outputs.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_016",
+  "key": "Add Python type hints to parameter lists and return values across module.",
+  "text": "Add Python type hints to parameter lists and return values across module.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_017",
+  "key": "Extract duplicate validation logic into a shared helper function.",
+  "text": "Extract duplicate validation logic into a shared helper function.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_008",
+  "key": "Create test cases verifying correct exception handling for invalid API tokens.",
+  "text": "Create test cases verifying correct exception handling for invalid API tokens.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_015",
+  "key": "Implement a basic string slugifier for URL-friendly title generation.",
+  "text": "Implement a basic string slugifier for URL-friendly title generation.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_002",
+  "key": "Fix NullPointer / NoneType exception when user profile object is missing.",
+  "text": "Fix NullPointer / NoneType exception when user profile object is missing.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_011",
+  "key": "Implement list chunking helper function that splits arrays into size N.",
+  "text": "Implement list chunking helper function that splits arrays into size N.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_013",
+  "key": "Implement a function to convert snake_case keys to camelCase in dicts.",
+  "text": "Implement a function to convert snake_case keys to camelCase in dicts.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_020",
+  "key": "Apply standard PEP8 style formatting and remove dead unused variables.",
+  "text": "Apply standard PEP8 style formatting and remove dead unused variables.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_010",
+  "key": "Write tests for password strength validation function.",
+  "text": "Write tests for password strength validation function.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_003",
+  "key": "Correct typo in variable name causing unexpected scoping error.",
+  "text": "Correct typo in variable name causing unexpected scoping error.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "mid_013",
+  "key": "Write aggregated SQL query for monthly user growth statistics.",
+  "text": "Write aggregated SQL query for monthly user growth statistics.",
+  "original": "mid",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_014",
+  "key": "Create a function to compute standard deviation of a numerical list.",
+  "text": "Create a function to compute standard deviation of a numerical list.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ },
+ {
+  "source": "json",
+  "id": "simple_009",
+  "key": "Write unit test for array deduplication function with mixed types.",
+  "text": "Write unit test for array deduplication function with mixed types.",
+  "original": "simple",
+  "label": "simple",
+  "split": "train"
+ }
+]

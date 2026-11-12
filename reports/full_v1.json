@@ -1,0 +1,220 @@
+{
+ "overall": {
+  "n": 126,
+  "accuracy": 0.8651,
+  "under_tiered": 0.0794,
+  "over_tiered": 0.0556,
+  "confusion": {
+   "simple": {
+    "simple": 39,
+    "mid": 2,
+    "complex": 1
+   },
+   "mid": {
+    "simple": 2,
+    "mid": 37,
+    "complex": 4
+   },
+   "complex": {
+    "simple": 0,
+    "mid": 8,
+    "complex": 33
+   }
+  }
+ },
+ "by_source": {
+  "csv": {
+   "n": 24,
+   "accuracy": 0.875,
+   "under_tiered": 0.0417,
+   "over_tiered": 0.0833,
+   "confusion": {
+    "simple": {
+     "simple": 7,
+     "mid": 1,
+     "complex": 0
+    },
+    "mid": {
+     "simple": 0,
+     "mid": 7,
+     "complex": 1
+    },
+    "complex": {
+     "simple": 0,
+     "mid": 1,
+     "complex": 7
+    }
+   }
+  },
+  "json": {
+   "n": 12,
+   "accuracy": 0.75,
+   "under_tiered": 0.0,
+   "over_tiered": 0.25,
+   "confusion": {
+    "simple": {
+     "simple": 3,
+     "mid": 0,
+     "complex": 1
+    },
+    "mid": {
+     "simple": 0,
+     "mid": 3,
+     "complex": 2
+    },
+    "complex": {
+     "simple": 0,
+     "mid": 0,
+     "complex": 3
+    }
+   }
+  },
+  "own": {
+   "n": 90,
+   "accuracy": 0.8778,
+   "under_tiered": 0.1,
+   "over_tiered": 0.0222,
+   "confusion": {
+    "simple": {
+     "simple": 29,
+     "mid": 1,
+     "complex": 0
+    },
+    "mid": {
+     "simple": 2,
+     "mid": 27,
+     "complex": 1
+    },
+    "complex": {
+     "simple": 0,
+     "mid": 7,
+     "complex": 23
+    }
+   }
+  }
+ },
+ "batch_ms_per_item": 12.89,
+ "single_call_ms_median": 33.51,
+ "misses": [
+  {
+   "source": "own",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.978,
+   "task": "Write a SQL query to find duplicate emails in the users table"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.511,
+   "task": "Add a `created_by` field to tasks and show the creator's name in the task list"
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.951,
+   "task": "The weekly digest email is sent twice to users with two devices registered. Fix it."
+  },
+  {
+   "source": "own",
+   "gold": "mid",
+   "pred": "simple",
+   "confidence": 0.946,
+   "task": "The product price displays as 19.999999 sometimes. Fix the rounding and format it as currency."
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.973,
+   "task": "Implement a spreadsheet-like formula engine for the reporting tool"
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.98,
+   "task": "Rewrite the synchronous request handlers to async throughout the service"
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.335,
+   "task": "Startup time of the CLI is 3 seconds. Get it under 300ms."
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.982,
+   "task": "Implement fine-grained, row-level permissions in the reporting module"
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.975,
+   "task": "Write a static analyzer that finds SQL injection risks in our codebase"
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.928,
+   "task": "Implement a search-as-you-type experience over 50 million records with typo tolerance"
+  },
+  {
+   "source": "own",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.701,
+   "task": "Replace polling with server-sent events everywhere the frontend waits on job status"
+  },
+  {
+   "source": "csv",
+   "gold": "complex",
+   "pred": "mid",
+   "confidence": 0.842,
+   "task": "Implement exactly-once business effects over at-least-once message delivery. Work within an existing codebase using Python/Kafka/PostgreSQL. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.895,
+   "task": "Create a Docker Compose setup for local development. Work within an existing codebase using Docker. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "csv",
+   "gold": "simple",
+   "pred": "mid",
+   "confidence": 0.977,
+   "task": "Add a health-check endpoint. Work within an existing codebase using FastAPI. Inspect relevant files before editing, follow established conventions, and avoid unrelated changes."
+  },
+  {
+   "source": "json",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.536,
+   "task": "Resolve N+1 query bottleneck in nested object serialization using eager joins."
+  },
+  {
+   "source": "json",
+   "gold": "mid",
+   "pred": "complex",
+   "confidence": 0.973,
+   "task": "Build thread-safe in-memory LRU cache with TTL expiration and lock management."
+  },
+  {
+   "source": "json",
+   "gold": "simple",
+   "pred": "complex",
+   "confidence": 0.85,
+   "task": "Convert legacy class component syntax to modern functional syntax."
+  }
+ ],
+ "model": "models/tier-full-v1"
+}
