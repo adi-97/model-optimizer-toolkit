@@ -186,7 +186,8 @@ class Router:
                 decision.source, decision.reason = "pre_lock", "prompt_too_short_to_lock"
                 return
             self._classify_into(decision, text)
-            self._route(body, decision)
+            if decision.tier:
+                self._route(body, decision)
             with self._lock:
                 self._remember(session["threads"], decision.thread,
                                {"requested": decision.requested_model, "tier": decision.tier,
@@ -203,6 +204,10 @@ class Router:
         decision.prompt_hash = digest(text)
         if self.config.store_prompts:
             decision.prompt = text[:300]
+        if not self.config.classifier:
+            decision.tier, decision.source = None, "classifier_off"
+            decision.target_model, decision.reason = decision.requested_model, "classifier_off"
+            return
         result, decision.classify_ms = self.classify(text)
         decision.tier, decision.confidence = result["tier"], result["confidence"]
         decision.source = "classifier" if decision.classify_ms else "cache"

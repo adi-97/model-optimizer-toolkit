@@ -1,6 +1,7 @@
 [routing]
 enabled = true
 profile = "hybrid"
+classifier = true
 switch_ask_usd = 0.25
 
 [context]

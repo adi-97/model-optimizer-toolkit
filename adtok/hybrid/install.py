@@ -157,9 +157,10 @@ def install(target, profile=None, url="http://127.0.0.1:8787", python=None, forc
         written, skipped = write_agents(target, force)
         merge_claude_md(os.path.join(target, "CLAUDE.md"), read_template("claude_md_block.md"))
         env = dict(ENV, **env)
+        if profile == "hybrid" and cfg["routing"]["classifier"]:
+            hooks.append(("UserPromptSubmit", None, hook_command(python, "user-prompt", url), 5))
         if profile == "hybrid":
-            hooks += [("UserPromptSubmit", None, hook_command(python, "user-prompt", url), 5),
-                      ("PreModelSwitch", None, hook_command(python, "pre-model-switch", url, "--ask-above-usd %.2f"
+            hooks += [("PreModelSwitch", None, hook_command(python, "pre-model-switch", url, "--ask-above-usd %.2f"
                                                             % cfg["routing"]["switch_ask_usd"]), 5)]
     kept = merge_settings(os.path.join(target, ".claude", "settings.local.json"), env, hooks, keys)
     manifest = {"profile": profile, "agents": written, "agent_sha": {n: digest_of(target, n) for n in written}, "env": [k for k in env if k not in kept],

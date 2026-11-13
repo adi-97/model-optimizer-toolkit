@@ -105,6 +105,10 @@ def create_app(config, classifier=None, transport=None, tracker=None):
 
     @asynccontextmanager
     async def lifespan(app):
+        if state["router"] is None and not config.classifier:
+            state["router"] = Router(config, None, pricing)
+            log.warning("adtok proxy ready on http://%s:%s -> %s (classifier off)", config.host, config.port,
+                        config.upstream)
         if state["router"] is None and config.classifier_model.startswith("stub:"):
             state["router"] = Router(config, StubClassifier(config.classifier_model[5:]), pricing)
             log.warning("adtok proxy ready on http://%s:%s -> %s (stub classifier)", config.host, config.port,
@@ -253,6 +257,8 @@ def create_app(config, classifier=None, transport=None, tracker=None):
         return JSONResponse({"ready": state["router"] is not None, "shadow": config.shadow})
 
     async def classify(request):
+        if not config.classifier:
+            return JSONResponse({"error": "classifier disabled (classifier = false)"}, status_code=503)
         if state["router"] is None:
             return JSONResponse({"error": "classifier not ready"}, status_code=503)
         try:

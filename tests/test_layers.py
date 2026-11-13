@@ -80,6 +80,16 @@ def test_install_tools_keeps_user_values_and_reinstall_follows_config():
     assert settings_of(target) == {"autoCompactWindow": 500000}
 
 
+def test_classifier_switch_controls_tier_hook():
+    target = tempfile.mkdtemp()
+    install(target, python="/py", layers={"routing": {"classifier": False}})
+    hooks = settings_of(target)["hooks"]
+    assert "UserPromptSubmit" not in hooks and "PreModelSwitch" in hooks
+    assert os.path.exists(os.path.join(target, ".claude", "agents", "Explore.md"))
+    install(target, python="/py")
+    assert "UserPromptSubmit" in settings_of(target)["hooks"]
+
+
 def test_reinstall_upgrades_agents_it_wrote():
     target = tempfile.mkdtemp()
     install(target, python="/py")

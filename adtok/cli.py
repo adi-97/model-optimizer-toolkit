@@ -23,7 +23,7 @@ def cmd_serve(args):
 
     config = load_config(args.config, host=args.host, port=args.port, upstream=args.upstream,
                          classifier_model=args.classifier_model, classifier_device=args.device,
-                         shadow=args.shadow, db_path=args.db)
+                         shadow=args.shadow, db_path=args.db, classifier=False if args.no_classifier else None)
     logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING,
                         format="%(asctime)s %(levelname)s %(message)s")
     uvicorn.run(create_app(config), host=config.host, port=config.port, log_level="warning")
@@ -163,6 +163,8 @@ def cmd_init(args):
     if result["env_kept_existing"]:
         print("  kept your existing values for: %s" % ", ".join(result["env_kept_existing"]))
     print("  hooks: %s" % (", ".join(result["hooks"]) or "none"))
+    if result["routing"] and "UserPromptSubmit" not in result["hooks"] and result["profile"] == "hybrid":
+        print("  classifier off: no tier hint hook (routing.classifier = false)")
     if "UserPromptSubmit" in result["hooks"]:
         print("  the tier hint needs the classifier service running: adtok serve  (no ANTHROPIC_BASE_URL needed)")
     print("  check the result with: adtok doctor %s" % args.target)
@@ -258,6 +260,7 @@ def main(argv=None):
     serve.add_argument("--device")
     serve.add_argument("--db")
     serve.add_argument("--shadow", action="store_const", const=True)
+    serve.add_argument("--no-classifier", action="store_true", help="do not load the tier model; nothing is routed by tier")
     serve.add_argument("-v", "--verbose", action="store_true")
     serve.set_defaults(func=cmd_serve)
 

@@ -5,7 +5,7 @@ import tomllib
 CONFIG = os.path.join(".claude", "adtok.toml")
 
 DEFAULTS = {
-    "routing": {"enabled": True, "profile": "hybrid", "switch_ask_usd": 0.25},
+    "routing": {"enabled": True, "profile": "hybrid", "classifier": True, "switch_ask_usd": 0.25},
     "context": {"compact_window": 250000, "handoff": True, "quiet_background": False},
     "tools": {"test_output": False, "read_guard": False, "read_max_lines": 2000, "grep_head_limit": 200,
               "output_caps": False, "bash_max_chars": 15000, "mcp_max_tokens": 10000},
@@ -15,6 +15,7 @@ DEFAULTS = {
 TEMPLATE = """[routing]
 enabled = true
 profile = "hybrid"
+classifier = true
 switch_ask_usd = 0.25
 
 [context]

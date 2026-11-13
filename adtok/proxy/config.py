@@ -36,6 +36,7 @@ class Config:
     upstream: str = "https://api.anthropic.com"
     host: str = "127.0.0.1"
     port: int = 8787
+    classifier: bool = True
     classifier_model: str = "models/tier-full-v1"
     classifier_device: str | None = None
     min_confidence: float = 0.6

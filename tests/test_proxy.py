@@ -89,6 +89,20 @@ def make(**overrides):
     return app, upstream, classifier, tracker
 
 
+def test_classifier_off_keeps_models_and_disables_classify():
+    tmp = tempfile.mkdtemp()
+    config = load_config(None, db_path=os.path.join(tmp, "usage.sqlite"), classifier=False,
+                         classifier_model="models/does-not-exist")
+    up = Upstream()
+    app = create_app(config, transport=httpx.MockTransport(up), tracker=Tracker(config.db_path))
+    with TestClient(app) as c:
+        r = post(c, request([user("Refactor the whole architecture of the auth layer")]))
+        assert c.post("/__adtok/classify", json={"text": "Fix the typo"}).status_code == 503
+        assert c.get("/__adtok/health").status_code == 200
+    assert r.status_code == 200 and up.requests[-1]["body"]["model"] == "claude-opus-5-5"
+    assert r.headers["x-adtok-source"] == "classifier_off" and r.headers["x-adtok"] == "-"
+
+
 def post(client, body, headers=None):
     return client.post("/v1/messages", json=body, headers={"x-api-key": "test", "anthropic-version": "2023-06-01",
                                                            **(headers or {})})

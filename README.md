@@ -17,6 +17,7 @@ python -m venv .venv
 ```bash
 adtok init path/to/project                          # writes .claude/adtok.toml on first run, installs enabled layers
 adtok init path/to/project --set tools.test_output=true   # one-off override; edit adtok.toml to keep it
+adtok init path/to/project --set routing.classifier=false # tier classifier off: no hint hook, no adtok serve needed
 adtok doctor path/to/project                        # prefix size, cache invalidators, layer conflicts
 adtok ledger --project path/to/project --by model   # tokens and $ from Claude Code's own transcripts
 adtok ledger misses --project path/to/project       # each cache rebuild, its cost and its likely cause
@@ -30,7 +31,7 @@ adtok uninstall path/to/project                     # removes exactly what init 
 
 | layer | `adtok.toml` | default | what it installs |
 |---|---|---|---|
-| routing | `[routing] enabled, profile` | on, `hybrid` | `Explore` on Haiku (with `autoCompactWindow: 100000`, below Haiku's 5× price step), `implementer`/`fixer` on Sonnet, `architect` on Opus, a `CLAUDE.md` delegation block, model aliases pinned to 5.5. `hybrid` adds a `Task tier:` hint hook (needs `adtok serve`) and a `PreModelSwitch` guard that asks before a switch re-writes more than `switch_ask_usd` of cache |
+| routing | `[routing] enabled, profile, classifier` | on, `hybrid`, on | `Explore` on Haiku (with `autoCompactWindow: 100000`, below Haiku's 5× price step), `implementer`/`fixer` on Sonnet, `architect` on Opus, a `CLAUDE.md` delegation block, model aliases pinned to 5.5. `hybrid` adds a `Task tier:` hint hook (needs `adtok serve`; `classifier = false` drops it and the model is never loaded) and a `PreModelSwitch` guard that asks before a switch re-writes more than `switch_ask_usd` of cache |
 | context | `compact_window` | `250000` | `autoCompactWindow`: 1M-context models otherwise compact near 967K tokens, re-reading up to 4× more context per request |
 | context | `handoff` | on | `PreCompact` tells the summary what to keep (task, changed files, exact failing tests, decisions); `PostCompact` saves the summary to `.claude/adtok-handoff.md`, so `/clear` plus the note can replace a long session |
 | context | `quiet_background` | off | stops goal check-ins and holds cross-session messages, which re-read context while you are idle |
@@ -69,6 +70,8 @@ adtok serve --config adtok.example.toml -v   # route: simple -> Haiku (low), mid
 $env:ANTHROPIC_BASE_URL = "http://127.0.0.1:8787"; claude
 adtok stats --since 7d --by route
 ```
+
+`classifier = false` in the proxy config, or `serve --no-classifier`, skips loading the model. The proxy then only records traffic and sends background calls to Haiku. `/__adtok/classify` returns 503.
 
 The proxy rewrites only `model`, `effort` and an incompatible `thinking` setting.
 
