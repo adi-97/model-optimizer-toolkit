@@ -1,0 +1,15 @@
+upstream = "https://api.anthropic.com"
+host = "127.0.0.1"
+port = 8787
+classifier_model = "models/tier-full-v1"
+min_confidence = 0.6
+shadow = false
+main_routing = false
+respect_native_subagents = true
+utility_tier = "simple"
+retry_original_on_error = true
+store_prompts = false
+db_path = "~/.adtok/usage.sqlite"
+
+[budget]
+action = "warn"

@@ -1,0 +1,21 @@
+[routing]
+enabled = true
+profile = "hybrid"
+switch_ask_usd = 0.25
+
+[context]
+compact_window = 250000
+handoff = true
+quiet_background = false
+
+[tools]
+test_output = false
+read_guard = false
+read_max_lines = 2000
+grep_head_limit = 200
+output_caps = false
+bash_max_chars = 15000
+mcp_max_tokens = 10000
+
+[output]
+concise = false

@@ -7,7 +7,7 @@ import time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from laya_tier import QUESTION_ID, TIERS, TierClassifier
+from adtok import QUESTION_ID, TIERS, TierClassifier
 
 
 def read(path):

@@ -1,0 +1,22 @@
+diff --git a/laya/structured.py b/laya/structured.py
+index ae9fe61..4708f39 100644
+--- a/laya/structured.py
++++ b/laya/structured.py
+@@ -153,7 +153,7 @@ def _score_field(path: str, name: str, prop: Dict[str, Any],
+     question = {
+         "type": "score",
+         "instructions": description or ("Score `%s` from %d to %d" % (name, lo, hi)),
+-        "criteria": [str(v) for v in range(lo, hi + 1)],
++        "criteria": [str(v) for v in range(lo, hi)],
+     }
+     return _Field(name=name, kind="score", question=question, minimum=lo)
+ 
+@@ -303,7 +303,7 @@ def _project(answers: Dict[str, Any], fields: Sequence[_Field]) -> Dict[str, Any
+                 # out, silently dropping `minimum` from every field whose schema does not start
+                 # at 0.
+                 idx = int(round(float(answer.get("score", 0.0))))
+-            values[f.name] = int(f.minimum or 0) + idx
++            values[f.name] = idx
+         else:  # choice
+             label = str(answer.get("choice"))
+             values[f.name] = next((value for lbl, value in f.options if lbl == label), label)

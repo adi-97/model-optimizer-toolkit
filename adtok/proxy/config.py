@@ -1,3 +1,4 @@
+import json
 import os
 import tomllib
 from dataclasses import dataclass, field
@@ -40,17 +41,17 @@ class Config:
     min_confidence: float = 0.6
     shadow: bool = False
     never_upgrade_from: list = field(default_factory=lambda: ["claude-haiku-4-5", "claude-haiku-5-5"])
+    main_routing: bool = True
+    respect_native_subagents: bool = True
     utility_tier: str | None = "simple"
     utility_max_chars: int = 20000
-    session_lock: bool = True
     lock_min_words: int = 5
-    follow_up_max_words: int = 4
     retry_original_on_error: bool = True
     context_editing_tiers: list = field(default_factory=list)
     routes: dict = field(default_factory=default_routes)
     budget: Budget = field(default_factory=Budget)
     prices: dict = field(default_factory=dict)
-    db_path: str = "~/.laya-tier/usage.sqlite"
+    db_path: str = "~/.adtok/usage.sqlite"
     store_prompts: bool = False
 
     def validate(self):
@@ -72,7 +73,10 @@ class Config:
 
 def load_config(path=None, **overrides):
     data = {}
-    if path:
+    if path and str(path).lower().endswith(".json"):
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    elif path:
         with open(path, "rb") as f:
             data = tomllib.load(f)
     data.update({k: v for k, v in overrides.items() if v is not None})
@@ -90,7 +94,8 @@ def load_config(path=None, **overrides):
         else:
             raise ValueError("unknown config key %r" % key)
     cfg.db_path = os.path.expanduser(cfg.db_path)
-    if not os.path.isabs(cfg.classifier_model) and not os.path.exists(cfg.classifier_model):
+    if (not cfg.classifier_model.startswith("stub:") and not os.path.isabs(cfg.classifier_model)
+            and not os.path.exists(cfg.classifier_model)):
         candidate = os.path.join(ROOT, cfg.classifier_model)
         if os.path.exists(candidate):
             cfg.classifier_model = candidate

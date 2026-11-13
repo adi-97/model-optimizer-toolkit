@@ -14,7 +14,7 @@ from .policy import CONTEXT_EDITING_BETA, Decision, Router, rewrite
 from .pricing import Pricing
 from .tracker import Tracker, start_of_day
 
-log = logging.getLogger("laya_tier.proxy")
+log = logging.getLogger("adtok.proxy")
 
 REQUEST_DROP = {"host", "content-length", "connection", "keep-alive", "transfer-encoding", "accept-encoding",
                 "upgrade", "proxy-connection", "te", "trailer"}
@@ -86,6 +86,15 @@ class SSEUsage:
                     self.usage[key] = dict(self.usage.get(key) or {}, **value)
 
 
+class StubClassifier:
+    def __init__(self, tier):
+        self.tier = tier
+
+    def classify(self, text):
+        return {"tier": self.tier, "confidence": 1.0, "probabilities": {self.tier: 1.0}, "escalated": False,
+                "latency_ms": 0.0}
+
+
 def create_app(config, classifier=None, transport=None, tracker=None):
     pricing = Pricing(config.prices)
     owns_tracker = tracker is None
@@ -96,15 +105,19 @@ def create_app(config, classifier=None, transport=None, tracker=None):
 
     @asynccontextmanager
     async def lifespan(app):
+        if state["router"] is None and config.classifier_model.startswith("stub:"):
+            state["router"] = Router(config, StubClassifier(config.classifier_model[5:]), pricing)
+            log.warning("adtok proxy ready on http://%s:%s -> %s (stub classifier)", config.host, config.port,
+                        config.upstream)
         if state["router"] is None:
-            from laya_tier import TierClassifier
+            from adtok import TierClassifier
 
             log.warning("loading classifier from %s", config.classifier_model)
             loaded = await run_in_threadpool(TierClassifier.load, config.classifier_model,
                                              config.classifier_device, config.min_confidence)
             await run_in_threadpool(loaded.classify, "warm up")
             state["router"] = Router(config, loaded, pricing)
-            log.warning("laya-tier proxy ready on http://%s:%s -> %s%s", config.host, config.port, config.upstream,
+            log.warning("adtok proxy ready on http://%s:%s -> %s%s", config.host, config.port, config.upstream,
                         " (shadow mode)" if config.shadow else "")
         yield
         await client.aclose()
@@ -155,7 +168,7 @@ def create_app(config, classifier=None, transport=None, tracker=None):
         try:
             resp = await send(request.method, upstream_url(request), raw, forward_headers(request))
         except httpx.HTTPError as exc:
-            return JSONResponse(error_body("api_error", "laya-tier upstream error: %s" % exc), status_code=502)
+            return JSONResponse(error_body("api_error", "adtok upstream error: %s" % exc), status_code=502)
 
         async def body():
             try:
@@ -175,16 +188,17 @@ def create_app(config, classifier=None, transport=None, tracker=None):
         if not isinstance(body, dict) or state["router"] is None:
             return await passthrough(request)
         started = time.perf_counter()
-        session = session_key(body)
+        hint_headers = {k.lower(): v for k, v in request.headers.items() if k.lower().startswith("x-claude-code-")}
+        session = session_key(body, hint_headers)
         over = over_budget(session) if (config.budget.daily_usd or config.budget.session_usd) else []
         if over and config.budget.action == "block":
             decision = Decision(session=session, requested_model=body.get("model"), reason="budget_" + "+".join(over))
             finish(decision, body, None, False, False, 429, {}, started, bool(body.get("stream")))
-            return JSONResponse(error_body("rate_limit_error", "laya-tier budget exceeded (%s)" % ", ".join(over)),
+            return JSONResponse(error_body("rate_limit_error", "adtok budget exceeded (%s)" % ", ".join(over)),
                                 status_code=429)
         force = "simple" if over and config.budget.action == "downgrade" else None
         try:
-            decision = await run_in_threadpool(state["router"].decide, body, force)
+            decision = await run_in_threadpool(state["router"].decide, body, force, hint_headers)
         except Exception as exc:
             log.exception("routing failed, passing request through")
             decision = Decision(session=session, requested_model=body.get("model"),
@@ -207,11 +221,11 @@ def create_app(config, classifier=None, transport=None, tracker=None):
         except httpx.HTTPError as exc:
             finish(decision, body, body.get("model") if retried else new_body.get("model"), False, retried, 502, {},
                    started, bool(body.get("stream")))
-            return JSONResponse(error_body("api_error", "laya-tier upstream error: %s" % exc), status_code=502)
+            return JSONResponse(error_body("api_error", "adtok upstream error: %s" % exc), status_code=502)
         applied = changed and decision.switches and not retried
         sent_model = new_body.get("model") if changed and not retried else body.get("model")
-        extra = {"x-laya-tier": decision.tier or "-", "x-laya-tier-model": sent_model or "-",
-                 "x-laya-tier-source": decision.source, "x-laya-tier-role": decision.role}
+        extra = {"x-adtok": decision.tier or "-", "x-adtok-model": sent_model or "-",
+                 "x-adtok-source": decision.source, "x-adtok-role": decision.role}
         headers = response_headers(resp, extra)
         if resp.headers.get("content-type", "").startswith("text/event-stream"):
             parser = SSEUsage()
@@ -235,7 +249,27 @@ def create_app(config, classifier=None, transport=None, tracker=None):
         finish(decision, body, sent_model, applied, retried, resp.status_code, usage, started, False)
         return Response(data, status_code=resp.status_code, headers=headers)
 
-    routes = [Route("/v1/messages", messages, methods=["POST"]),
+    async def health(request):
+        return JSONResponse({"ready": state["router"] is not None, "shadow": config.shadow})
+
+    async def classify(request):
+        if state["router"] is None:
+            return JSONResponse({"error": "classifier not ready"}, status_code=503)
+        try:
+            payload = await request.json()
+        except ValueError:
+            payload = {}
+        text = str((payload or {}).get("text") or "").strip()
+        if not text:
+            return JSONResponse({"error": "text is required"}, status_code=400)
+        result, elapsed = await run_in_threadpool(state["router"].classify, text[:4000])
+        log.info("classify tier=%s confidence=%.3f %.1fms", result["tier"], result["confidence"], elapsed)
+        return JSONResponse({"tier": result["tier"], "confidence": result["confidence"],
+                             "escalated": result.get("escalated", False), "latency_ms": round(elapsed, 1)})
+
+    routes = [Route("/__adtok/health", health, methods=["GET"]),
+              Route("/__adtok/classify", classify, methods=["POST"]),
+              Route("/v1/messages", messages, methods=["POST"]),
               Route("/{path:path}", passthrough, methods=METHODS)]
     app = Starlette(routes=routes, lifespan=lifespan)
     app.state.tracker = tracker

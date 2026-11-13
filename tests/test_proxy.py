@@ -10,11 +10,11 @@ sys.path.insert(0, ROOT)
 import httpx
 from starlette.testclient import TestClient
 
-from laya_tier.proxy import load_config
-from laya_tier.proxy.policy import adapt_thinking
-from laya_tier.proxy.pricing import Pricing
-from laya_tier.proxy.server import SSEUsage, create_app
-from laya_tier.proxy.tracker import Tracker
+from adtok.proxy import load_config
+from adtok.proxy.policy import adapt_thinking
+from adtok.proxy.pricing import Pricing
+from adtok.proxy.server import SSEUsage, create_app
+from adtok.proxy.tracker import Tracker
 
 MAIN_SYSTEM = [{"type": "text", "text": "You are the main coding agent."}]
 TOOLS = [{"name": "Read", "input_schema": {"type": "object"}}, {"name": "Bash", "input_schema": {"type": "object"}}]
@@ -102,7 +102,7 @@ def test_simple_prompt_routes_to_haiku_with_low_effort():
     sent = up.requests[-1]["body"]
     assert sent["model"] == "claude-haiku-5-5", sent["model"]
     assert sent["output_config"]["effort"] == "low"
-    assert r.headers["x-laya-tier"] == "simple" and r.headers["x-laya-tier-role"] == "main"
+    assert r.headers["x-adtok"] == "simple" and r.headers["x-adtok-role"] == "main"
     assert clf.calls == ["Fix the typo in the README file please"], clf.calls
     row = tracker.recent(1)[0]
     assert row["applied"] == 1 and row["sent_model"] == "claude-haiku-5-5"
@@ -141,7 +141,7 @@ def test_main_thread_survives_tool_list_change():
         post(c, request(first))
         r = post(c, request(first + [assistant(), tool_result()], tools=more_tools))
         post(c, request([user("Summary of the conversation so far: payments refactor")], tools=more_tools))
-    assert r.headers["x-laya-tier-role"] == "main" and r.headers["x-laya-tier-source"] == "locked"
+    assert r.headers["x-adtok-role"] == "main" and r.headers["x-adtok-source"] == "locked"
     assert [q["body"]["model"] for q in up.requests] == ["claude-opus-5-5"] * 3
     assert len(clf.calls) == 1
 
@@ -152,7 +152,7 @@ def test_short_first_prompt_does_not_lock():
         r1 = post(c, request([user("hi")]))
         post(c, request([user("hi"), {"role": "assistant", "content": "hello"},
                          user("Add a new endpoint for listing invoices with pagination")]))
-    assert r1.headers["x-laya-tier-source"] == "pre_lock"
+    assert r1.headers["x-adtok-source"] == "pre_lock"
     assert [q["body"]["model"] for q in up.requests] == ["claude-opus-5-5", "claude-sonnet-5-5"]
     assert up.requests[1]["body"]["output_config"]["effort"] == "medium"
 
@@ -164,7 +164,7 @@ def test_manual_model_switch_is_respected():
         post(c, request(first))
         r = post(c, request(first + [assistant(), tool_result()], model="claude-fable-5-2"))
     assert up.requests[-1]["body"]["model"] == "claude-fable-5-2"
-    assert r.headers["x-laya-tier-source"] == "manual_switch"
+    assert r.headers["x-adtok-source"] == "manual_switch"
 
 
 def test_branches_are_routed_independently():
@@ -176,7 +176,7 @@ def test_branches_are_routed_independently():
                             tools=[{"name": "Grep", "input_schema": {"type": "object"}}]))
         post(c, request([user("Please refactor the payment architecture end to end"), assistant(), tool_result()]))
     assert [q["body"]["model"] for q in up.requests] == ["claude-opus-5-5", "claude-haiku-5-5", "claude-opus-5-5"]
-    assert r.headers["x-laya-tier-role"] == "branch"
+    assert r.headers["x-adtok-role"] == "branch"
 
 
 def test_small_toolless_side_calls_go_to_utility_tier():
@@ -189,8 +189,61 @@ def test_small_toolless_side_calls_go_to_utility_tier():
         post(c, request([user("Summarise this conversation and refactor notes: " + big)], system="Summarise.",
                         tools=None))
     assert [q["body"]["model"] for q in up.requests] == ["claude-opus-5-5", "claude-haiku-5-5", "claude-opus-5-5"]
-    assert r.headers["x-laya-tier-role"] == "utility" and r.headers["x-laya-tier-source"] == "utility"
+    assert r.headers["x-adtok-role"] == "utility" and r.headers["x-adtok-source"] == "utility"
     assert len(clf.calls) == 2
+
+
+def hinted(cls, agent_type=None, agent_id=None, session="S1"):
+    h = {"x-claude-code-session-id": session, "x-claude-code-request-class": cls}
+    if agent_type:
+        h["x-claude-code-agent-type"] = agent_type
+    if agent_id:
+        h["x-claude-code-agent-id"] = agent_id
+    return h
+
+
+def test_hint_headers_classify_traffic_without_guessing():
+    app, up, clf, tracker = make()
+    sub_system = [{"type": "text", "text": "You are a search agent."}]
+    with TestClient(app) as c:
+        post(c, request([user("Please refactor the payment architecture end to end")]), headers=hinted("main"))
+        post(c, request([user("Write a short title for this session")], tools=None), headers=hinted("auxiliary"))
+        post(c, request([user("Find which file defines the parse_date helper")], system=sub_system),
+             headers=hinted("subagent", "general-purpose", "a1"))
+        post(c, request([user("Please refactor the payment architecture end to end")]),
+             headers=hinted("subagent", "fork", "f1"))
+        post(c, request([user("Summarise the conversation so far for compaction")]), headers=hinted("compaction"))
+        post(c, request([user("Please refactor the payment architecture end to end"), assistant(), tool_result()],
+                        tools=TOOLS + [{"name": "WebSearch", "input_schema": {"type": "object"}}]),
+             headers=hinted("main"))
+    models = [q["body"]["model"] for q in up.requests]
+    assert models == ["claude-opus-5-5", "claude-haiku-5-5", "claude-opus-5-5", "claude-opus-5-5",
+                      "claude-opus-5-5", "claude-opus-5-5"], models
+    rows = list(reversed(tracker.recent(6)))
+    assert [r["role"] for r in rows] == ["main", "utility", "branch", "fork", "compaction", "main"], rows
+    assert [r["source"] for r in rows][1:5] == ["auxiliary", "native_subagent", "fork", "compaction"]
+    assert rows[5]["source"] == "locked"
+    assert len({r["session"] for r in rows}) == 1
+
+
+def test_main_routing_off_observes_tier_but_keeps_model():
+    app, up, clf, tracker = make(main_routing=False)
+    with TestClient(app) as c:
+        post(c, request([user("Fix the typo in the README file please")]), headers=hinted("main"))
+    assert up.requests[-1]["body"]["model"] == "claude-opus-5-5"
+    row = tracker.recent(1)[0]
+    assert row["tier"] == "simple" and row["reason"] == "main_routing_off" and row["applied"] == 0
+
+
+def test_subagents_can_be_routed_when_native_choice_is_not_respected():
+    app, up, clf, tracker = make(respect_native_subagents=False)
+    with TestClient(app) as c:
+        post(c, request([user("Find which file defines the parse_date helper")],
+                        system=[{"type": "text", "text": "search agent"}]), headers=hinted("subagent", "Explore", "a9"))
+        post(c, request([user("Find which file defines the parse_date helper"), assistant(), tool_result()],
+                        system=[{"type": "text", "text": "search agent"}]), headers=hinted("subagent", "Explore", "a9"))
+    assert [q["body"]["model"] for q in up.requests] == ["claude-haiku-5-5", "claude-haiku-5-5"]
+    assert tracker.recent(1)[0]["source"] == "locked" and tracker.recent(1)[0]["thread"] == "agent:a9"
 
 
 def test_haiku_requests_are_never_upgraded():
@@ -294,19 +347,6 @@ def test_other_paths_pass_through():
         r = c.get("/v1/models", headers={"x-api-key": "t"})
     assert r.status_code == 200 and up.requests[-1]["path"] == "/v1/models"
     assert tracker.recent(1) == []
-
-
-def test_per_prompt_mode_switches_between_prompts():
-    app, up, _, _ = make(session_lock=False)
-    first = [user("Fix the typo in the README file please")]
-    with TestClient(app) as c:
-        post(c, request(first))
-        post(c, request(first + [{"role": "assistant", "content": "done"},
-                                 user("Now refactor the whole architecture into services")]))
-        post(c, request(first + [{"role": "assistant", "content": "done"},
-                                 user("Now refactor the whole architecture into services"), {"role": "assistant",
-                                 "content": "ok"}, user("yes")]))
-    assert [q["body"]["model"] for q in up.requests] == ["claude-haiku-5-5", "claude-opus-5-5", "claude-opus-5-5"]
 
 
 def test_thinking_is_adapted_per_target():

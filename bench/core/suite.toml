@@ -1,0 +1,73 @@
+name = "core"
+results_dir = "D:/Applications/token-bench-results/core"
+repeats = 3
+budget_usd = 120.0
+per_run_usd = 20.0
+baseline_arm = "baseline"
+keep_venv = false
+
+[[task]]
+id = "bugfix-structured"
+kind = "bugfix"
+prompt = "tasks/bugfix-structured/prompt.md"
+timeout_min = 30
+template = { git = "D:/Applications/laya-model", ref = "HEAD", patch = "tasks/bugfix-structured/bug.patch" }
+
+[[task.check]]
+name = "test_structured"
+run = ["{python}", "tests/test_structured.py"]
+
+[[task.check]]
+name = "test_structured_api"
+run = ["{python}", "tests/test_structured_api.py"]
+
+[[task.check]]
+name = "tests_unchanged"
+unchanged = "tests"
+
+[[task]]
+id = "greenfield-genexp"
+kind = "greenfield"
+prompt = "tasks/greenfield-genexp/prompt.md"
+timeout_min = 45
+
+[[task.check]]
+name = "hidden_acceptance"
+run = ["{python}", "{task_dir}/check.py", "{workspace}"]
+timeout_s = 1200
+
+[[arm]]
+id = "baseline"
+route_traffic = false
+
+[[arm]]
+id = "concise"
+route_traffic = false
+append_system_prompt = "Be concise. Keep messages to the user short; do not restate code you have written."
+
+[[arm]]
+id = "native"
+route_traffic = false
+install = "native"
+layers = { context = { compact_window = 0, handoff = false } }
+
+[[arm]]
+id = "hybrid"
+route_traffic = false
+install = "hybrid"
+layers = { context = { compact_window = 0, handoff = false } }
+
+[[arm]]
+id = "ensemble"
+route_traffic = false
+install = "hybrid"
+
+[[arm]]
+id = "ensemble-tools"
+route_traffic = false
+install = "hybrid"
+layers = { tools = { test_output = true, read_guard = true } }
+
+[[arm]]
+id = "routed"
+proxy = { shadow = false }

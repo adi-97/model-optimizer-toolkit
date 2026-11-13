@@ -92,8 +92,7 @@ class Router:
         with self._lock:
             session = self._sessions.get(key)
             if session is None:
-                session = {"main_sig": None, "main_sigs": set(), "main_first": None, "threads": OrderedDict(),
-                           "last": None}
+                session = {"main_sig": None, "main_sigs": set(), "main_first": None, "threads": OrderedDict()}
             self._remember(self._sessions, key, session, self.max_sessions)
             return session
 
@@ -115,21 +114,49 @@ class Router:
                 return "main", "main"
         return "branch", sig + ":" + first
 
-    def decide(self, body, force_tier=None):
+    def decide(self, body, force_tier=None, headers=None):
+        headers = headers or {}
         requested = body.get("model")
-        decision = Decision(session=session_key(body), requested_model=requested, target_model=requested)
+        decision = Decision(session=session_key(body, headers), requested_model=requested, target_model=requested)
         session = self._session(decision.session)
-        decision.role, decision.thread = self._thread(body, decision, session)
         messages = body.get("messages") or []
+        request_class = headers.get("x-claude-code-request-class")
+        if request_class:
+            if self._decide_from_hints(body, decision, messages, headers, request_class):
+                return decision
+        else:
+            decision.role, decision.thread = self._thread(body, decision, session)
         if decision.role == "branch" and self._is_utility(body):
             decision.role, decision.tier, decision.source = "utility", self.config.utility_tier, "utility"
             self._route(body, decision)
             return decision
-        if self.config.session_lock:
-            self._decide_locked(body, decision, session, messages, force_tier)
-        else:
-            self._decide_per_prompt(body, decision, session, messages, force_tier)
+        self._decide_locked(body, decision, session, messages, force_tier)
         return decision
+
+    def _decide_from_hints(self, body, decision, messages, headers, request_class):
+        agent_type = headers.get("x-claude-code-agent-type") or ""
+        agent_id = headers.get("x-claude-code-agent-id") or ""
+        if request_class == "main":
+            decision.role, decision.thread = "main", "main"
+            return False
+        if request_class == "auxiliary":
+            decision.role, decision.thread = "utility", "auxiliary"
+            if self.config.utility_tier:
+                decision.tier, decision.source = self.config.utility_tier, "auxiliary"
+                self._route(body, decision)
+            else:
+                decision.source, decision.reason = "auxiliary", "utility_routing_off"
+            return True
+        if request_class == "compaction" or agent_type == "fork":
+            decision.role, decision.thread = request_class if request_class == "compaction" else "fork", agent_id
+            decision.source, decision.reason = decision.role, "keeps_parent_model"
+            return True
+        decision.role, decision.thread = "branch", "agent:" + (agent_id or digest(first_human_text(messages)))
+        if self.config.respect_native_subagents:
+            decision.source, decision.reason = "native_subagent", "native_model_respected"
+            decision.tier = None
+            return True
+        return False
 
     def _is_utility(self, body):
         if not self.config.utility_tier or body.get("tools"):
@@ -172,27 +199,6 @@ class Router:
         decision.context_editing = (decision.tier in self.config.context_editing_tiers
                                     and "context_management" not in body)
 
-    def _decide_per_prompt(self, body, decision, session, messages, force_tier):
-        _, text = last_human_turn(messages)
-        last = session["last"]
-        if text and last and len(text.split()) <= self.config.follow_up_max_words and last["hash"] != digest(text):
-            decision.tier, decision.confidence, decision.source = last["tier"], last["confidence"], "follow_up"
-            decision.prompt_hash = digest(text)
-        elif text:
-            self._classify_into(decision, text)
-        elif last:
-            decision.tier, decision.confidence, decision.source = last["tier"], last["confidence"], "session"
-        else:
-            decision.reason = "no_prompt"
-            return
-        if decision.role == "main" and text:
-            session["last"] = {"hash": digest(text), "tier": decision.tier, "confidence": decision.confidence}
-        if force_tier:
-            decision.tier, decision.source = force_tier, decision.source + "+budget"
-        self._route(body, decision)
-        decision.context_editing = (decision.tier in self.config.context_editing_tiers
-                                    and "context_management" not in body)
-
     def _classify_into(self, decision, text):
         decision.prompt_hash = digest(text)
         if self.config.store_prompts:
@@ -206,6 +212,9 @@ class Router:
         route = self.config.routes[decision.tier]
         target = route.model or requested
         decision.reason = ""
+        if decision.role == "main" and not self.config.main_routing:
+            decision.target_model, decision.effort, decision.reason = requested, None, "main_routing_off"
+            return
         if target != requested:
             blocked = self.blocker(body, requested, target)
             if blocked:

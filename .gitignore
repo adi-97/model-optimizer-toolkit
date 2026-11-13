@@ -6,3 +6,8 @@ __pycache__/
 models/
 *.sqlite
 *.safetensors
+.claude/settings.local.json
+research_notes/
+.claude/adtok-logs/
+.claude/adtok-handoff.md
+.claude/adtok.json

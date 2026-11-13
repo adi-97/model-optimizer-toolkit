@@ -6,7 +6,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "data"))
 
-from laya_tier.questions import QUESTION_ID, QUESTIONS, state_for
+from adtok.questions import QUESTION_ID, QUESTIONS, state_for
 import prompts
 
 EXTERNAL = os.path.join(ROOT, "data", "external.json")

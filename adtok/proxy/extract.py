@@ -33,7 +33,10 @@ def last_human_turn(messages):
     return None, ""
 
 
-def session_key(body):
+def session_key(body, headers=None):
+    session_id = (headers or {}).get("x-claude-code-session-id")
+    if session_id:
+        return "s:" + digest(session_id)
     user_id = (body.get("metadata") or {}).get("user_id")
     if user_id:
         return "u:" + digest(str(user_id))
