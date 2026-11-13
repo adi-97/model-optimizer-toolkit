@@ -2,7 +2,9 @@ import json
 import os
 import re
 import shlex
+import socket
 import sys
+import urllib.parse
 import urllib.request
 
 MIN_WORDS = 5
@@ -35,7 +37,9 @@ def read_event(stream=None):
 
 
 def classify(url, text, timeout=3.0):
-    req = urllib.request.Request(url.rstrip("/") + "/__adtok/classify", method="POST",
+    parts = urllib.parse.urlsplit(url)
+    socket.create_connection((parts.hostname, parts.port or 80), timeout=0.25).close()
+    req =urllib.request.Request(url.rstrip("/") + "/__adtok/classify", method="POST",
                                  data=json.dumps({"text": text}).encode("utf-8"),
                                  headers={"content-type": "application/json"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:

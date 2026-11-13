@@ -23,7 +23,11 @@ adtok ledger --project path/to/project --by model   # tokens and $ from Claude C
 adtok ledger misses --project path/to/project       # each cache rebuild, its cost and its likely cause
 adtok ledger ttl --project path/to/project          # your sessions re-priced under 5m vs 1h cache lifetime
 adtok uninstall path/to/project                     # removes exactly what init added
+adtok init --user                                   # every project: ~/.claude/settings.json, CLAUDE.md, agents/
+adtok uninstall --user                              # undo the user-level install
 ```
+
+`--user` works like RTK's global install. It writes adtok's block into `~/.claude/CLAUDE.md` and its hooks and settings into `~/.claude/settings.json`, and keeps its config in `~/.claude/adtok.toml`. A project-level install still wins inside that project.
 
 `init` keeps existing agents, settings and `CLAUDE.md` content, and reports any value it left alone. Re-run it after editing `adtok.toml`.
 

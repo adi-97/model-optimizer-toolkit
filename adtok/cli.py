@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 import re
 import sys
 import time
@@ -150,9 +151,12 @@ def parse_sets(values):
 def cmd_init(args):
     from .hybrid import install
 
-    result = install(args.target, profile=args.profile, url=args.url, force=args.force,
-                     switch_ask_usd=args.ask_above_usd, layers=parse_sets(args.set))
-    print("installed adtok into %s (config: .claude/adtok.toml)" % args.target)
+    target = os.path.expanduser("~") if args.user else args.target
+    result = install(target, profile=args.profile, url=args.url, force=args.force,
+                     switch_ask_usd=args.ask_above_usd, layers=parse_sets(args.set), user=args.user)
+    print("installed adtok into %s (config: %s)" % (
+        "your user settings, for every project" if args.user else target,
+        os.path.join(target, ".claude", "adtok.toml")))
     if result["routing"]:
         print("  routing (%s): agents %s; CLAUDE.md block between adtok markers" % (
             result["profile"], ", ".join(result["agents_written"]) or "unchanged"))
@@ -167,7 +171,7 @@ def cmd_init(args):
         print("  classifier off: no tier hint hook (routing.classifier = false)")
     if "UserPromptSubmit" in result["hooks"]:
         print("  the tier hint needs the classifier service running: adtok serve  (no ANTHROPIC_BASE_URL needed)")
-    print("  check the result with: adtok doctor %s" % args.target)
+    print("  check the result with: adtok doctor %s" % (target if not args.user else "<project>"))
 
 
 def cmd_doctor(args):
@@ -232,9 +236,10 @@ def cmd_digest(args):
 def cmd_uninstall(args):
     from .hybrid import uninstall
 
-    result = uninstall(args.target)
+    target = os.path.expanduser("~") if args.user else args.target
+    result = uninstall(target, user=args.user)
     print("removed adtok configuration from %s (agents removed: %s)" % (
-        args.target, ", ".join(result["agents_removed"]) or "none"))
+        "your user settings" if args.user else target, ", ".join(result["agents_removed"]) or "none"))
 
 
 def cmd_hook(args):
@@ -303,6 +308,7 @@ def main(argv=None):
     init.add_argument("--url", default="http://127.0.0.1:8787")
     init.add_argument("--ask-above-usd", type=float)
     init.add_argument("--force", action="store_true")
+    init.add_argument("--user", action="store_true", help="install for every project (~/.claude) instead of one")
     init.set_defaults(func=cmd_init)
 
     doctor = sub.add_parser("doctor", help="audit the prompt prefix, cache invalidators and layer conflicts")
@@ -328,6 +334,7 @@ def main(argv=None):
 
     uninst = sub.add_parser("uninstall", help="remove what init installed")
     uninst.add_argument("target", nargs="?", default=".")
+    uninst.add_argument("--user", action="store_true", help="remove the user-level (all projects) install")
     uninst.set_defaults(func=cmd_uninstall)
 
     hook = sub.add_parser("hook", help="entry point for Claude Code hooks")

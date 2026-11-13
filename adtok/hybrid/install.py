@@ -134,8 +134,15 @@ def strip_settings(path, env_keys, keys=()):
         os.remove(path)
 
 
+def scope_files(target, user):
+    if user:
+        return os.path.join(target, ".claude", "CLAUDE.md"), os.path.join(target, ".claude", "settings.json")
+    return os.path.join(target, "CLAUDE.md"), os.path.join(target, ".claude", "settings.local.json")
+
+
 def install(target, profile=None, url="http://127.0.0.1:8787", python=None, force=False, switch_ask_usd=None,
-            layers=None):
+            layers=None, user=False):
+    claude_md, settings_path = scope_files(target, user)
     overrides = dict(layers or {})
     routing = dict(overrides.get("routing", {}))
     if profile:
@@ -144,7 +151,7 @@ def install(target, profile=None, url="http://127.0.0.1:8787", python=None, forc
         routing["switch_ask_usd"] = switch_ask_usd
     overrides["routing"] = routing
     if os.path.exists(os.path.join(target, MANIFEST)):
-        uninstall(target, keep_config=True)
+        uninstall(target, keep_config=True, user=user)
     cfg = load_layers(target, overrides)
     profile = cfg["routing"]["profile"]
     if profile not in PROFILES:
@@ -155,15 +162,16 @@ def install(target, profile=None, url="http://127.0.0.1:8787", python=None, forc
     written, skipped = [], []
     if cfg["routing"]["enabled"]:
         written, skipped = write_agents(target, force)
-        merge_claude_md(os.path.join(target, "CLAUDE.md"), read_template("claude_md_block.md"))
+        merge_claude_md(claude_md, read_template("claude_md_block.md"))
         env = dict(ENV, **env)
         if profile == "hybrid" and cfg["routing"]["classifier"]:
             hooks.append(("UserPromptSubmit", None, hook_command(python, "user-prompt", url), 5))
         if profile == "hybrid":
             hooks += [("PreModelSwitch", None, hook_command(python, "pre-model-switch", url, "--ask-above-usd %.2f"
                                                             % cfg["routing"]["switch_ask_usd"]), 5)]
-    kept = merge_settings(os.path.join(target, ".claude", "settings.local.json"), env, hooks, keys)
-    manifest = {"profile": profile, "agents": written, "agent_sha": {n: digest_of(target, n) for n in written}, "env": [k for k in env if k not in kept],
+    kept = merge_settings(settings_path, env, hooks, keys)
+    manifest = {"profile": profile, "scope": "user" if user else "project", "agents": written,
+                "agent_sha": {n: digest_of(target, n) for n in written}, "env": [k for k in env if k not in kept],
                 "settings": [k for k in keys if k not in kept], "url": url}
     with open(os.path.join(target, MANIFEST), "w", encoding="utf-8", newline="\n") as f:
         json.dump(manifest, f, indent=2)
@@ -196,7 +204,8 @@ def write_agents(target, force):
     return written, skipped
 
 
-def uninstall(target, keep_config=False):
+def uninstall(target, keep_config=False, user=False):
+    claude_md, settings_path = scope_files(target, user)
     path = os.path.join(target, MANIFEST)
     manifest = {}
     if os.path.exists(path):
@@ -212,8 +221,8 @@ def uninstall(target, keep_config=False):
             removed.append(name)
     if os.path.isdir(agents_dir) and not os.listdir(agents_dir):
         os.rmdir(agents_dir)
-    strip_claude_md(os.path.join(target, "CLAUDE.md"))
-    strip_settings(os.path.join(target, ".claude", "settings.local.json"), manifest.get("env", list(ENV)),
+    strip_claude_md(claude_md)
+    strip_settings(settings_path, manifest.get("env", list(ENV)),
                    manifest.get("settings", []))
     if os.path.exists(path):
         os.remove(path)

@@ -90,6 +90,23 @@ def test_classifier_switch_controls_tier_hook():
     assert "UserPromptSubmit" in settings_of(target)["hooks"]
 
 
+def test_user_scope_uses_global_files_and_restores_them():
+    home = tempfile.mkdtemp()
+    write(os.path.join(home, ".claude", "settings.json"), json.dumps({"permissions": {"allow": ["WebSearch"]}}))
+    write(os.path.join(home, ".claude", "CLAUDE.md"), "# Mine\n")
+    install(home, python="/py", user=True)
+    s = json.load(open(os.path.join(home, ".claude", "settings.json"), encoding="utf-8"))
+    assert s["autoCompactWindow"] == 250000 and "UserPromptSubmit" in s["hooks"] and s["permissions"]
+    assert "## Model routing" in open(os.path.join(home, ".claude", "CLAUDE.md"), encoding="utf-8").read()
+    assert os.path.exists(os.path.join(home, ".claude", "agents", "Explore.md"))
+    assert not os.path.exists(os.path.join(home, "CLAUDE.md"))
+    assert not os.path.exists(os.path.join(home, ".claude", "settings.local.json"))
+    uninstall(home, user=True)
+    assert json.load(open(os.path.join(home, ".claude", "settings.json"))) == {"permissions": {"allow": ["WebSearch"]}}
+    assert open(os.path.join(home, ".claude", "CLAUDE.md"), encoding="utf-8").read() == "# Mine\n"
+    assert not os.path.exists(os.path.join(home, ".claude", "agents"))
+
+
 def test_reinstall_upgrades_agents_it_wrote():
     target = tempfile.mkdtemp()
     install(target, python="/py")
