@@ -167,6 +167,8 @@ def cmd_init(args):
     if result["env_kept_existing"]:
         print("  kept your existing values for: %s" % ", ".join(result["env_kept_existing"]))
     print("  hooks: %s" % (", ".join(result["hooks"]) or "none"))
+    for name, mode in sorted(result["skill_overrides"].items()):
+        print("  skill %s -> %s (unused; remove it from skillOverrides to restore)" % (name, mode))
     if result["routing"] and "UserPromptSubmit" not in result["hooks"] and result["profile"] == "hybrid":
         print("  classifier off: no tier hint hook (routing.classifier = false)")
     if "UserPromptSubmit" in result["hooks"]:
@@ -224,6 +226,38 @@ def cmd_ledger(args):
             100 * g["hit_rate"], g["cost"]))
     total = sum(r["cost"] for r in rows)
     print("total $%.3f over %d requests" % (total, len(rows)))
+    return 0
+
+
+def cmd_skills(args):
+    from .skills import report
+
+    home = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
+    base = os.path.join(args.target, ".claude")
+    bases = [("user", home)] if args.user else [("project", base), ("user", home)]
+    settings = [os.path.join(home, "settings.json")] + ([] if args.user else [
+        os.path.join(base, "settings.json"), os.path.join(base, "settings.local.json")])
+    result = report(bases, settings, None if args.user else args.target, days=args.days)
+    if args.json:
+        print(json.dumps(result, indent=1))
+        return 0
+    listed = [s for s in result["skills"] if s["listed_chars"]]
+    print("skill listing: about %d tokens on every request (%d of %d skills and commands listed)"
+          % ((result["listing_chars"] + 3) // 4, len(listed), len(result["skills"])))
+    print("transcripts cover %.1f days%s" % (result["history_days"], "" if result["history_days"] >= args.days else
+                                            "; under %d, so nothing is marked unused yet" % args.days))
+    print("  %6s %6s %5s %-11s %-8s %-28s %s" % ("listed", "body", "uses", "last used", "scope", "name", "note"))
+    for s in sorted(result["skills"], key=lambda s: (-s["listed_chars"], s["name"])):
+        prunable = s["prune"] and (args.user or s["scope"] == "project")
+        notes = ([("unused %dd -> skills.prune_unused" % args.days)] if prunable else []) + (
+            ["override %s" % s["override"]] if s["override"] else []) + (
+            ["user-only"] if not s["model_invocable"] else [])
+        print("  %6d %6d %5d %-11s %-8s %-28s %s" % (
+            (s["listed_chars"] + 3) // 4, s["body_tokens"], s["uses"],
+            time.strftime("%Y-%m-%d", time.localtime(s["last_used"])) if s["last_used"] else "never",
+            s["scope"], s["name"][:28], ", ".join(notes)))
+    for f in result["findings"]:
+        print("%-4s [%s] %s" % (f["level"], f["layer"], f["message"]))
     return 0
 
 
@@ -325,6 +359,13 @@ def main(argv=None):
     led.add_argument("--by", default="session", choices=["session", "model", "agent", "day"])
     led.add_argument("--top", type=int, default=20)
     led.set_defaults(func=cmd_ledger)
+
+    sk = sub.add_parser("skills", help="skill listing cost, body size and use from transcripts")
+    sk.add_argument("target", nargs="?", default=".")
+    sk.add_argument("--user", action="store_true", help="user skills only, with use counted across all projects")
+    sk.add_argument("--days", type=int, default=30, help="a listed skill with no use in this many days is unused")
+    sk.add_argument("--json", action="store_true")
+    sk.set_defaults(func=cmd_skills)
 
     dig = sub.add_parser("digest", help="shorten long command output from stdin, keeping the full log on disk")
     dig.add_argument("--log-dir", required=True)

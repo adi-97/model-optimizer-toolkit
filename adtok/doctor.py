@@ -4,36 +4,13 @@ import re
 
 from .hybrid.install import BEGIN, END, MARKER
 from .ledger import project_slug, projects_root
+from .skills import discover, findings as skill_findings, frontmatter, listed_chars, read, tokens
 
 BUILTIN_STYLES = {"default", "explanatory", "learning", "concise"}
 MAX_LINES = 200
-MAX_SKILL_DESC = 1536
 MAX_ON_DEMAND = 40000
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 IMPORT = re.compile(r"^\s*@(\S+)", re.MULTILINE)
-FRONT = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
-
-
-def tokens(text):
-    return (len(text) + 3) // 4
-
-
-def read(path):
-    try:
-        with open(path, encoding="utf-8", errors="replace") as f:
-            return f.read()
-    except OSError:
-        return None
-
-
-def frontmatter(text):
-    match = FRONT.match(text or "")
-    out = {}
-    for line in (match.group(1) if match else "").splitlines():
-        if ":" in line and not line.startswith((" ", "\t")):
-            key, value = line.split(":", 1)
-            out[key.strip()] = value.strip().strip("\"'")
-    return out
 
 
 def load_json(path):
@@ -120,27 +97,6 @@ def audit(target, home=None):
         if text.count("\n") > 200 or len(text.encode("utf-8")) > 25000:
             warn("prefix", "MEMORY.md is past 200 lines or 25KB; the rest is silently dropped")
 
-    listing = 0
-    for base in (os.path.join(target, ".claude"), home):
-        for kind in ("skills", "commands"):
-            folder = os.path.join(base, kind)
-            for root, _, files in os.walk(folder) if os.path.isdir(folder) else []:
-                for name in files:
-                    if not name.endswith(".md") or (kind == "skills" and name != "SKILL.md"):
-                        continue
-                    fm = frontmatter(read(os.path.join(root, name)))
-                    desc = fm.get("description", "")
-                    if fm.get("disable-model-invocation") != "true":
-                        listing += len(desc) + len(fm.get("name", name))
-                    if len(desc) > MAX_SKILL_DESC:
-                        warn("prefix", "%s description is %d characters (cap %d)" % (root, len(desc), MAX_SKILL_DESC))
-                    if fm.get("model") and fm["model"] not in ("inherit",):
-                        warn("cache", "%s sets model: %s; invoking it switches model and rebuilds the cache"
-                             % (os.path.join(root, name), fm["model"]))
-    if listing:
-        components.append({"kind": "skill listing", "path": "skills + commands", "lines": 0,
-                           "tokens": tokens("x" * listing)})
-
     settings = {}
     for path in (os.path.join(home, "settings.json"), os.path.join(target, ".claude", "settings.json"),
                  os.path.join(target, ".claude", "settings.local.json")):
@@ -152,6 +108,16 @@ def audit(target, home=None):
         settings.update(data)
         settings["env"], settings["hooks"] = env, hooks
     env = settings["env"]
+
+    skills = discover([("project", os.path.join(target, ".claude")), ("user", home)])
+    overrides = settings.get("skillOverrides") if isinstance(settings.get("skillOverrides"), dict) else {}
+    for s in skills:
+        s["listed_chars"] = listed_chars(s, overrides)
+    listing = sum(s["listed_chars"] for s in skills)
+    if listing:
+        components.append({"kind": "skill listing", "path": "%d skills + commands" % len(skills), "lines": 0,
+                           "tokens": tokens("x" * listing)})
+    findings += skill_findings(skills)
 
     if settings.get("model") == "opusplan" or env.get("ANTHROPIC_MODEL") == "opusplan":
         warn("cache", "opusplan switches model on every plan-mode toggle and rebuilds the cache each time")

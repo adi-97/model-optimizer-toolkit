@@ -266,6 +266,55 @@ def test_doctor_finds_prefix_cache_and_conflict_issues():
     assert any(c["kind"] == "adtok block" for c in audit(clean, home=home)["components"])
 
 
+def skill_fixture():
+    import time
+    target, config = tempfile.mkdtemp(), tempfile.mkdtemp()
+    skills = os.path.join(target, ".claude", "skills")
+    write(os.path.join(skills, "used", "SKILL.md"), "---\nname: used\ndescription: >\n  runs the release\n  checklist\n---\nx\n")
+    write(os.path.join(skills, "stale", "SKILL.md"), "---\nname: stale\ndescription: %s\n---\n%s" % ("s" * 300, "l\n" * 600))
+    write(os.path.join(skills, "manual", "SKILL.md"), "---\nname: manual\ndescription: m\ndisable-model-invocation: true\n---\nx\n")
+    write(os.path.join(target, ".claude", "commands", "deploy.md"), "---\ndescription: ship it now\n---\nx\n")
+    write(os.path.join(target, ".claude", "commands", "kept.md"), "---\ndescription: keep me\n---\nx\n")
+    write(os.path.join(target, ".claude", "settings.local.json"), json.dumps({"skillOverrides": {"kept": "off"}}))
+    stamp = lambda days: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - days * 86400))
+    records = [{"type": "user", "timestamp": stamp(60), "message": {"content": "hi"}},
+               {"type": "assistant", "timestamp": stamp(2), "message": {"content": [
+                   {"type": "tool_use", "id": "t1", "name": "Skill", "input": {"skill": "used"}}]}},
+               {"type": "user", "timestamp": stamp(45), "message": {"content": "<command-name>/deploy</command-name>"}}]
+    write(os.path.join(config, "projects", ledger.project_slug(target), "s.jsonl"),
+          "\n".join(json.dumps(r) for r in records) + "\n")
+    return target, config
+
+
+def test_skills_report_and_prune_layer():
+    from adtok.skills import frontmatter, report
+    assert frontmatter("---\ndescription: >\n  a\n  b\nname: n\n---\n") == {"description": "a b", "name": "n"}
+    target, config = skill_fixture()
+    os.environ["CLAUDE_CONFIG_DIR"] = config
+    try:
+        base = os.path.join(target, ".claude")
+        result = report([("project", base)], [os.path.join(base, "settings.local.json")], target, days=30)
+        by = {s["name"]: s for s in result["skills"]}
+        assert by["used"]["uses"] == 1 and by["deploy"]["uses"] == 1 and by["used"]["desc_chars"] == 26
+        assert by["manual"]["listed_chars"] == 0 and by["kept"]["listed_chars"] == 0
+        assert {n for n, s in by.items() if s["prune"]} == {"stale", "deploy"}
+        assert any("keep SKILL.md under 500" in f["message"] for f in result["findings"])
+        short = report([("project", base)], [], target, days=90)
+        assert not any(s["prune"] for s in short["skills"])
+        out = install(target, python="/py", layers={"skills": {"prune_unused": True}})
+        assert out["skill_overrides"] == {"stale": "name-only", "deploy": "name-only"}
+        assert settings_of(target)["skillOverrides"] == {"kept": "off", "stale": "name-only", "deploy": "name-only"}
+        doctor = audit(target, home=tempfile.mkdtemp())
+        assert any("keep SKILL.md under 500" in f["message"] for f in doctor["findings"])
+        install(target, python="/py")
+        assert settings_of(target)["skillOverrides"] == {"kept": "off"}
+        install(target, python="/py", layers={"skills": {"prune_unused": True}})
+        uninstall(target)
+        assert settings_of(target) == {"skillOverrides": {"kept": "off"}}
+    finally:
+        os.environ.pop("CLAUDE_CONFIG_DIR", None)
+
+
 def main():
     tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
     failed = 0

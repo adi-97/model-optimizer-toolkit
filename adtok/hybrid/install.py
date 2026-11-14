@@ -134,6 +134,42 @@ def strip_settings(path, env_keys, keys=()):
         os.remove(path)
 
 
+def merge_overrides(path, wanted):
+    settings = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            settings = json.load(f)
+    current = settings.setdefault("skillOverrides", {})
+    added = {name: mode for name, mode in wanted.items() if name not in current}
+    current.update(added)
+    if not current:
+        settings.pop("skillOverrides")
+    if added:
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(settings, f, indent=2)
+            f.write("\n")
+    return added
+
+
+def strip_overrides(path, ours_map):
+    if not ours_map or not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as f:
+        settings = json.load(f)
+    current = settings.get("skillOverrides", {})
+    for name, mode in ours_map.items():
+        if current.get(name) == mode:
+            current.pop(name)
+    if "skillOverrides" in settings and not current:
+        settings.pop("skillOverrides")
+    if settings:
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(settings, f, indent=2)
+            f.write("\n")
+    else:
+        os.remove(path)
+
+
 def scope_files(target, user):
     if user:
         return os.path.join(target, ".claude", "CLAUDE.md"), os.path.join(target, ".claude", "settings.json")
@@ -170,14 +206,22 @@ def install(target, profile=None, url="http://127.0.0.1:8787", python=None, forc
             hooks += [("PreModelSwitch", None, hook_command(python, "pre-model-switch", url, "--ask-above-usd %.2f"
                                                             % cfg["routing"]["switch_ask_usd"]), 5)]
     kept = merge_settings(settings_path, env, hooks, keys)
+    pruned = {}
+    if cfg["skills"]["prune_unused"]:
+        from ..skills import MODES, prune_plan
+
+        if cfg["skills"]["mode"] not in MODES:
+            raise ValueError("skills.mode must be one of %s" % (MODES,))
+        pruned = merge_overrides(settings_path, prune_plan(target, user, int(cfg["skills"]["unused_days"]),
+                                                           cfg["skills"]["mode"]))
     manifest = {"profile": profile, "scope": "user" if user else "project", "agents": written,
                 "agent_sha": {n: digest_of(target, n) for n in written}, "env": [k for k in env if k not in kept],
-                "settings": [k for k in keys if k not in kept], "url": url}
+                "settings": [k for k in keys if k not in kept], "skill_overrides": pruned, "url": url}
     with open(os.path.join(target, MANIFEST), "w", encoding="utf-8", newline="\n") as f:
         json.dump(manifest, f, indent=2)
         f.write("\n")
     return {"agents_written": written, "agents_skipped": skipped, "env_kept_existing": kept, "profile": profile,
-            "routing": cfg["routing"]["enabled"], "settings": keys, "env": env,
+            "routing": cfg["routing"]["enabled"], "settings": keys, "env": env, "skill_overrides": pruned,
             "hooks": sorted({h[0] for h in hooks})}
 
 
@@ -222,6 +266,7 @@ def uninstall(target, keep_config=False, user=False):
     if os.path.isdir(agents_dir) and not os.listdir(agents_dir):
         os.rmdir(agents_dir)
     strip_claude_md(claude_md)
+    strip_overrides(settings_path, manifest.get("skill_overrides", {}))
     strip_settings(settings_path, manifest.get("env", list(ENV)),
                    manifest.get("settings", []))
     if os.path.exists(path):

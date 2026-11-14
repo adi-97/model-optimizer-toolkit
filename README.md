@@ -4,13 +4,22 @@ One package that cuts and measures the token cost of Claude Code by stacking sev
 
 Why these layers: on Opus 5.5 and Sonnet 5.5 a cache read costs 0.05× input. The bill is driven by cache *writes*, output and context growth, not by bytes of tool output. Billed studies found that blanket output compression saves tokens and loses money. So the layers that shrink or protect the cache are on by default, and the tool-output layers stay off until the benchmark justifies them. Research and sources: [token reduction techniques](reports/Claude%20Code%20token%20reduction%20techniques.md) and [model routing hybrid](reports/Claude%20Code%20model%20routing%20hybrid.md).
 
-## Setup
+## Install
+
+```powershell
+./install.ps1 -User                # Windows: core layers for every project, no torch, no classifier
+./install.ps1 -Train -User         # also installs Laya + torch, trains the tier classifier, enables the hint
+```
 
 ```bash
-python -m venv .venv
-.venv/Scripts/python -m pip install torch --index-url https://download.pytorch.org/whl/cu124
-.venv/Scripts/python -m pip install -e ../laya-model -e .
+./install.sh --user                # Linux/macOS; --classifier installs Laya only, --train also trains
 ```
+
+The core (layers, doctor, ledger, skills, hooks) uses only the Python standard library (3.11+). Without `-User`, the script installs only the package, and you then choose a scope with `adtok init`. By hand:
+
+- `pip install -e .` installs the core.
+- `pip install -e ".[proxy]"` adds `adtok serve` without the model.
+- `pip install -e ".[classifier]"` adds Laya and torch. For a CUDA build, install torch from the PyTorch index first. To train the model, see the [training guide](docs/training.md).
 
 ## Use
 
@@ -19,6 +28,7 @@ adtok init path/to/project                          # writes .claude/adtok.toml 
 adtok init path/to/project --set tools.test_output=true   # one-off override; edit adtok.toml to keep it
 adtok init path/to/project --set routing.classifier=false # tier classifier off: no hint hook, no adtok serve needed
 adtok doctor path/to/project                        # prefix size, cache invalidators, layer conflicts
+adtok skills path/to/project                        # skill listing cost, body size, uses and last use per skill
 adtok ledger --project path/to/project --by model   # tokens and $ from Claude Code's own transcripts
 adtok ledger misses --project path/to/project       # each cache rebuild, its cost and its likely cause
 adtok ledger ttl --project path/to/project          # your sessions re-priced under 5m vs 1h cache lifetime
@@ -43,6 +53,7 @@ adtok uninstall --user                              # undo the user-level instal
 | tools | `read_guard` | off | adds `limit` to Reads of files over `read_max_lines` and `head_limit` to content Greps; never edits output, so Read de-duplication and edit anchors stay intact |
 | tools | `output_caps` | off | `bashOutputMaxChars` and `MAX_MCP_OUTPUT_TOKENS` |
 | output | `concise` | off | the built-in `Concise` output style (cache-safe to switch) |
+| skills | `prune_unused`, `unused_days`, `mode` | off, `30`, `name-only` | `skillOverrides` for your own skills and commands with no use in the last `unused_days` (from transcripts, only once they cover that many days). `name-only` drops the description from every request but keeps the skill callable. Uninstall removes only the entries adtok added |
 
 All tool rewrites go through one `PreToolUse` dispatcher, because when two hooks rewrite the same call the last to finish wins. Rewrites copy every original input field. Nothing ever edits a message already sent, so the prompt cache survives.
 
@@ -56,6 +67,23 @@ All tool rewrites go through one `PreToolUse` dispatcher, because when two hooks
 - **output and context:** effort `max`, an `outputStyle` with no file behind it, Haiku agents without the 100K window, no `autoCompactWindow`
 
 `--strict` exits 1 on any warning.
+
+## Skills
+
+Each skill or command the model can invoke puts its name and description (up to 1,536 characters) into the listing on every request. The body loads only when the skill is invoked. `adtok skills` shows, for each skill:
+
+- **listed:** tokens in the listing, after `disable-model-invocation` and `skillOverrides`
+- **body:** body tokens
+- **uses and last use:** counted from `Skill` tool calls and `/name` commands in transcripts. `--user` counts across all projects.
+
+Skills marked unused can be pruned with `adtok init --set skills.prune_unused=true`. Skills synced from claude.ai are reported but never pruned.
+
+`doctor` also flags:
+
+- a `SKILL.md` over 500 lines (move reference material into linked files, which load only when read)
+- a body over 5,000 tokens (only that much is re-injected after compaction)
+- a listing past the 8,000-character fallback budget, where the least-used skills lose their descriptions
+- a skill with its own `model:`, which rebuilds the cache
 
 ## Ledger
 
@@ -108,15 +136,7 @@ Arms can override any layer with `layers = { section = { key = value } }`. The r
 
 ## Classifier
 
-```bash
-python scripts/import_external.py --csv <tasks.csv> --json <tasks.json>
-python scripts/build_dataset.py
-laya-train --data data/train.jsonl --eval-data data/eval.jsonl --base english --epochs 6 \
-           --micro-batch 8 --grad-accum 1 --device cpu --out models/tier-full-v1
-python scripts/evaluate.py --model models/tier-full-v1 --device cuda
-```
-
-`tier-full-v1` is a [Laya](https://github.com/NandhaKishorM/laya) model that labels tasks simple, mid or complex in about 34 ms. It scored 0.865 held-out accuracy against 0.579 zero-shot. No complex task was classified simple.
+`./install.ps1 -Train` builds the dataset and trains `models/tier-full-v1`. The [training guide](docs/training.md) covers the data format, adding your own tasks, the training flags, evaluation and plugging a new model in. `tier-full-v1` is a [Laya](https://github.com/NandhaKishorM/laya) model that labels tasks simple, mid or complex in about 34 ms. It scored 0.865 held-out accuracy against 0.579 zero-shot. No complex task was classified simple.
 
 ## Tests
 

@@ -10,6 +10,7 @@ DEFAULTS = {
     "tools": {"test_output": False, "read_guard": False, "read_max_lines": 2000, "grep_head_limit": 200,
               "output_caps": False, "bash_max_chars": 15000, "mcp_max_tokens": 10000},
     "output": {"concise": False},
+    "skills": {"prune_unused": False, "unused_days": 30, "mode": "name-only"},
 }
 
 TEMPLATE = """[routing]
@@ -34,6 +35,11 @@ mcp_max_tokens = 10000
 
 [output]
 concise = false
+
+[skills]
+prune_unused = false
+unused_days = 30
+mode = "name-only"
 """
 
 
