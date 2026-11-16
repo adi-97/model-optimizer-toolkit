@@ -61,6 +61,7 @@ class Suite:
 
 
 def _path(root, value):
+    value = os.path.expanduser(os.path.expandvars(value))
     return value if os.path.isabs(value) else os.path.normpath(os.path.join(root, value))
 
 
@@ -74,10 +75,9 @@ def load_suite(path):
         with open(prompt_path, encoding="utf-8") as f:
             prompt = f.read()
         template = dict(raw.get("template") or {})
-        if template.get("patch"):
-            template["patch"] = _path(root, template["patch"])
-        if template.get("copy"):
-            template["copy"] = _path(root, template["copy"])
+        for key in ("git", "patch", "copy"):
+            if template.get(key):
+                template[key] = _path(root, template[key])
         checks = [Check(**c) for c in raw.get("check", [])]
         for c in checks:
             if not (c.run or c.unchanged):

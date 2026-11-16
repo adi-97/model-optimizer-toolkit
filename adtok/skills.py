@@ -3,13 +3,14 @@ import os
 import re
 import time
 
+from .layers import SKILL_MODES
 from .ledger import iter_records, parse_ts, session_files
 
 MAX_DESC = 1536
 MAX_BODY_LINES = 500
 REINJECT_TOKENS = 5000
 LISTING_FALLBACK_CHARS = 8000
-MODES = ("name-only", "user-invocable-only", "off")
+MODES = SKILL_MODES
 FRONT = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 COMMAND = re.compile(r"<command-name>/?([^<\s]+)</command-name>")
 

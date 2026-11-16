@@ -4,7 +4,6 @@ import os
 import subprocess
 import sys
 import tempfile
-import traceback
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -157,15 +156,6 @@ def test_classify_endpoint_and_hook_together():
 
 
 if __name__ == "__main__":
-    tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
-    failed = 0
-    for name, fn in tests:
-        try:
-            fn()
-            print("PASS", name)
-        except Exception:
-            failed += 1
-            print("FAIL", name)
-            traceback.print_exc()
-    print("%d/%d passed" % (len(tests) - failed, len(tests)))
-    sys.exit(1 if failed else 0)
+    from runner import run as run_tests
+
+    sys.exit(run_tests(globals()))

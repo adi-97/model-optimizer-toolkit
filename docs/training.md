@@ -5,11 +5,16 @@ The tier classifier reads a coding task and labels it `simple`, `mid` or `comple
 ## Quick path
 
 ```powershell
-./install.ps1 -Train            # venv, laya + torch, dataset, training into models/tier-full-v1
+./install.ps1 -Train            # Windows: venv, laya + torch, dataset, training into models/tier-full-v1
 .venv\Scripts\python scripts\evaluate.py --model models\tier-full-v1
 ```
 
-`./install.sh --train` does the same on Linux and macOS. The steps below are what the script runs, so you can change them.
+```bash
+./install.sh --train            # Linux/macOS: the same steps
+.venv/bin/python scripts/evaluate.py --model models/tier-full-v1
+```
+
+The steps below are what the scripts run, so you can change them. Commands use `python`; that means `.venv\Scripts\python` on Windows and `.venv/bin/python` elsewhere.
 
 ## 1. The data
 

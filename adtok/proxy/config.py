@@ -3,6 +3,8 @@ import os
 import tomllib
 from dataclasses import dataclass, field
 
+from ..models import LATEST
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 TIERS = ("simple", "mid", "complex")
@@ -25,9 +27,9 @@ class Budget:
 
 def default_routes():
     return {
-        "simple": Route("claude-haiku-5-5", "low"),
-        "mid": Route("claude-sonnet-5-5", "medium"),
-        "complex": Route("claude-opus-5-5", None),
+        "simple": Route(LATEST["haiku"], "low"),
+        "mid": Route(LATEST["sonnet"], "medium"),
+        "complex": Route(LATEST["opus"], None),
     }
 
 
@@ -41,7 +43,7 @@ class Config:
     classifier_device: str | None = None
     min_confidence: float = 0.6
     shadow: bool = False
-    never_upgrade_from: list = field(default_factory=lambda: ["claude-haiku-4-5", "claude-haiku-5-5"])
+    never_upgrade_from: list = field(default_factory=lambda: ["claude-haiku-4-5", LATEST["haiku"]])
     main_routing: bool = True
     respect_native_subagents: bool = True
     utility_tier: str | None = "simple"

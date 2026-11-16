@@ -4,8 +4,6 @@ import re
 import shlex
 import socket
 import sys
-import urllib.parse
-import urllib.request
 
 MIN_WORDS = 5
 
@@ -37,6 +35,9 @@ def read_event(stream=None):
 
 
 def classify(url, text, timeout=3.0):
+    import urllib.parse
+    import urllib.request
+
     parts = urllib.parse.urlsplit(url)
     socket.create_connection((parts.hostname, parts.port or 80), timeout=0.25).close()
     req =urllib.request.Request(url.rstrip("/") + "/__adtok/classify", method="POST",

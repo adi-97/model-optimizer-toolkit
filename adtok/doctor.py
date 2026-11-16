@@ -1,6 +1,9 @@
 import json
 import os
 import re
+import shlex
+import shutil
+import subprocess
 
 from .hybrid.install import BEGIN, END, MARKER
 from .ledger import project_slug, projects_root
@@ -11,6 +14,8 @@ MAX_LINES = 200
 MAX_ON_DEMAND = 40000
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 IMPORT = re.compile(r"^\s*@(\S+)", re.MULTILINE)
+HOOK_CHECK_SECONDS = 10
+INTERPRETERS = {}
 
 
 def load_json(path):
@@ -51,6 +56,40 @@ def expand_imports(path, depth=0, seen=None):
             seen.add(child)
             parts += expand_imports(child, depth + 1, seen)
     return parts
+
+
+def hook_interpreter(command):
+    if MARKER not in command:
+        return None
+    head = command.split(" -m adtok.cli", 1)[0].strip()
+    if head.startswith('"') and head.endswith('"'):
+        return head[1:-1]
+    try:
+        parts = shlex.split(head)
+    except ValueError:
+        return head
+    return parts[0] if len(parts) == 1 else head
+
+
+def check_interpreter(python):
+    if not (os.path.isfile(python) or shutil.which(python)):
+        return "runs %s, which does not exist" % python
+    try:
+        result = subprocess.run([python, "-c", "import adtok"], capture_output=True, timeout=HOOK_CHECK_SECONDS)
+    except subprocess.TimeoutExpired:
+        return "runs %s, which took over %ds to import adtok" % (python, HOOK_CHECK_SECONDS)
+    except OSError as e:
+        return "runs %s, which cannot start (%s)" % (python, e)
+    return None if result.returncode == 0 else "runs %s, which cannot import adtok" % python
+
+
+def hook_problem(command):
+    python = hook_interpreter(command)
+    if python is None:
+        return None
+    if python not in INTERPRETERS:
+        INTERPRETERS[python] = check_interpreter(python)
+    return INTERPRETERS[python]
 
 
 def audit(target, home=None):
@@ -162,10 +201,17 @@ def audit(target, home=None):
                 rewriters.append("%s -> %s" % (matcher, command[:60]))
     ours = any(MARKER in (h.get("command") or "") for e in settings["hooks"].get("PreToolUse", [])
                for h in e.get("hooks", []))
-    for r in rewriters:
-        if "rtk" in r.lower() or ours:
-            warn("safety", "another PreToolUse hook may rewrite tool input (%s); when two hooks rewrite the same "
-                 "call, the last to finish wins" % r)
+    for r in rewriters if ours else []:
+        warn("safety", "another PreToolUse hook may rewrite tool input (%s); when two hooks rewrite the same "
+             "call, the last to finish wins" % r)
+
+    for event, entries in settings["hooks"].items():
+        for entry in entries:
+            for h in entry.get("hooks", []):
+                problem = hook_problem(h.get("command") or "")
+                if problem:
+                    warn("hooks", "%s hook %s; every session will hit a failing hook (re-run adtok init)"
+                         % (event, problem))
 
     agents_dir = os.path.join(target, ".claude", "agents")
     for name in sorted(os.listdir(agents_dir)) if os.path.isdir(agents_dir) else []:
