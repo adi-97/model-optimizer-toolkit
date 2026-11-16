@@ -6,7 +6,16 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 $env:USE_TF = "0"
-if (-not (Test-Path .venv)) { python -m venv .venv }
+if (-not (Test-Path .venv)) {
+    $python = if ($env:PYTHON) { $env:PYTHON } else { "python" }
+    & $python -c "import sys; sys.exit(sys.version_info < (3, 11))" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "adtok needs Python 3.11+; $python is older or missing."
+        Write-Host "point PYTHON at a newer interpreter, e.g. `$env:PYTHON = 'C:\Python312\python.exe'; .\install.ps1"
+        exit 1
+    }
+    & $python -m venv .venv
+}
 $py = Join-Path $PSScriptRoot ".venv\Scripts\python.exe"
 & $py -m pip install -q --upgrade pip
 if ($Classifier -or $Train) {

@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 import threading
-import traceback
+import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -108,6 +108,9 @@ def test_core_suite_parses():
 
 def test_git_template_applies_planted_bug():
     suite = load_suite(os.path.join(ROOT, "bench", "core", "suite.toml"))
+    repo = suite.task("bugfix-structured").template["git"]
+    if not os.path.exists(os.path.join(repo, ".git")):
+        raise unittest.SkipTest("template repo %s is missing (clone laya-model next to this repo)" % repo)
     dest = os.path.join(tempfile.mkdtemp(), "ws")
     protected = workspace.prepare(suite.task("bugfix-structured"), dest)
     src = open(os.path.join(dest, "laya", "structured.py"), encoding="utf-8").read()
@@ -215,15 +218,6 @@ def test_verdict():
 
 
 if __name__ == "__main__":
-    tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
-    failed = 0
-    for name, fn in tests:
-        try:
-            fn()
-            print("PASS", name)
-        except Exception:
-            failed += 1
-            print("FAIL", name)
-            traceback.print_exc()
-    print("%d/%d passed" % (len(tests) - failed, len(tests)))
-    sys.exit(1 if failed else 0)
+    from runner import run as run_tests
+
+    sys.exit(run_tests(globals()))

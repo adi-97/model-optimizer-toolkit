@@ -65,7 +65,7 @@ def print_row(r):
 def cmd_classify(args):
     from .proxy import load_config
     from .proxy.policy import Router
-    from .proxy.pricing import Pricing
+    from .proxy.pricing import LATEST, Pricing
     from . import TierClassifier
 
     config = load_config(args.config, classifier_model=args.classifier_model, classifier_device=args.device)
@@ -73,7 +73,7 @@ def cmd_classify(args):
                                      min_confidence=config.min_confidence)
     router = Router(config, classifier, Pricing(config.prices))
     for text in args.text:
-        body = {"model": args.model, "messages": [{"role": "user", "content": text}]}
+        body = {"model": args.model or LATEST["opus"], "messages": [{"role": "user", "content": text}]}
         d = router.decide(body)
         print("%-7s %.3f  %s -> %s%s  %s" % (d.tier, d.confidence, d.requested_model, d.target_model,
                                             " effort=%s" % d.effort if d.effort else "", text[:80]))
@@ -148,15 +148,37 @@ def parse_sets(values):
     return out
 
 
+def parse_unsets(values):
+    from .layers import DEFAULTS
+
+    out = {}
+    for item in values or []:
+        section, _, name = item.strip().partition(".")
+        if name not in DEFAULTS.get(section, {}):
+            raise SystemExit("--unset takes section.key, e.g. tools.read_guard (unknown: %s)" % item)
+        out.setdefault(section, {})[name] = DEFAULTS[section][name]
+    return out
+
+
 def cmd_init(args):
     from .hybrid import install
 
     target = os.path.expanduser("~") if args.user else args.target
+    sets = parse_sets(args.set)
+    for section, values in parse_unsets(args.unset).items():
+        clash = set(values) & set(sets.get(section, {}))
+        if clash:
+            raise SystemExit("%s.%s is in both --set and --unset" % (section, sorted(clash)[0]))
+        sets.setdefault(section, {}).update(values)
     result = install(target, profile=args.profile, url=args.url, force=args.force,
-                     switch_ask_usd=args.ask_above_usd, layers=parse_sets(args.set), user=args.user)
+                     switch_ask_usd=args.ask_above_usd, layers=sets, user=args.user, save=sets)
     print("installed adtok into %s (config: %s)" % (
         "your user settings, for every project" if args.user else target,
         os.path.join(target, ".claude", "adtok.toml")))
+    if sets:
+        print("  saved --set/--unset values to the config, so the next init keeps them")
+    if result["backup"]:
+        print("  backed up your settings to %s" % result["backup"])
     if result["routing"]:
         print("  routing (%s): agents %s; CLAUDE.md block between adtok markers" % (
             result["profile"], ", ".join(result["agents_written"]) or "unchanged"))
@@ -314,7 +336,7 @@ def main(argv=None):
     classify = sub.add_parser("classify", help="show the tier and route for prompts")
     classify.add_argument("text", nargs="+")
     classify.add_argument("--config")
-    classify.add_argument("--model", default="claude-opus-5-5")
+    classify.add_argument("--model", help="requested model (default: the latest Opus)")
     classify.add_argument("--classifier-model")
     classify.add_argument("--device")
     classify.set_defaults(func=cmd_classify)
@@ -338,7 +360,9 @@ def main(argv=None):
     init.add_argument("target", nargs="?", default=".")
     init.add_argument("--profile", choices=["native", "hybrid"])
     init.add_argument("--set", action="append", metavar="SECTION.KEY=VALUE",
-                      help="override a layer setting for this install, e.g. tools.test_output=true")
+                      help="set a layer value in .claude/adtok.toml and install, e.g. tools.test_output=true")
+    init.add_argument("--unset", action="append", metavar="SECTION.KEY",
+                      help="reset a layer value in .claude/adtok.toml to its default, e.g. tools.read_guard")
     init.add_argument("--url", default="http://127.0.0.1:8787")
     init.add_argument("--ask-above-usd", type=float)
     init.add_argument("--force", action="store_true")
@@ -388,6 +412,12 @@ def main(argv=None):
     hook.set_defaults(func=cmd_hook)
 
     args = parser.parse_args(argv)
+    if args.func in (cmd_init, cmd_uninstall):
+        try:
+            return args.func(args)
+        except ValueError as e:
+            print("adtok %s: %s (nothing was changed)" % (args.command, e), file=sys.stderr)
+            return 2
     return args.func(args)
 
 

@@ -11,7 +11,15 @@ for arg in "$@"; do
     *) echo "usage: ./install.sh [--classifier] [--train] [--user]"; exit 2 ;;
   esac
 done
-[ -d .venv ] || python3 -m venv .venv
+if [ ! -d .venv ]; then
+  python="${PYTHON:-python3}"
+  if ! "$python" -c 'import sys; sys.exit(sys.version_info < (3, 11))' 2>/dev/null; then
+    echo "adtok needs Python 3.11+; $python is $("$python" -V 2>/dev/null || echo missing)."
+    echo "point PYTHON at a newer interpreter, e.g. PYTHON=python3.12 ./install.sh"
+    exit 1
+  fi
+  "$python" -m venv .venv
+fi
 py=.venv/bin/python
 [ -x "$py" ] || py=.venv/Scripts/python
 "$py" -m pip install -q --upgrade pip

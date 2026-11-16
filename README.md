@@ -15,6 +15,8 @@ Why these layers: on Opus 5.5 and Sonnet 5.5 a cache read costs 0.05× input. Th
 ./install.sh --user                # Linux/macOS; --classifier installs Laya only, --train also trains
 ```
 
+Both scripts check for Python 3.11+ before they create `.venv`. Set `PYTHON` to use another interpreter, such as a conda or pyenv one: `PYTHON=~/.pyenv/versions/3.12.4/bin/python ./install.sh`, or `$env:PYTHON = "C:\Python312\python.exe"` before `./install.ps1`. After install, the CLI is `.venv\Scripts\adtok` on Windows and `.venv/bin/adtok` on Linux and macOS.
+
 The core (layers, doctor, ledger, skills, hooks) uses only the Python standard library (3.11+). Without `-User`, the script installs only the package, and you then choose a scope with `adtok init`. By hand:
 
 - `pip install -e .` installs the core.
@@ -25,7 +27,8 @@ The core (layers, doctor, ledger, skills, hooks) uses only the Python standard l
 
 ```bash
 adtok init path/to/project                          # writes .claude/adtok.toml on first run, installs enabled layers
-adtok init path/to/project --set tools.test_output=true   # one-off override; edit adtok.toml to keep it
+adtok init path/to/project --set tools.test_output=true   # saves the value to adtok.toml, then installs
+adtok init path/to/project --unset tools.test_output     # puts the key back to its default
 adtok init path/to/project --set routing.classifier=false # tier classifier off: no hint hook, no adtok serve needed
 adtok doctor path/to/project                        # prefix size, cache invalidators, layer conflicts
 adtok skills path/to/project                        # skill listing cost, body size, uses and last use per skill
@@ -37,9 +40,22 @@ adtok init --user                                   # every project: ~/.claude/s
 adtok uninstall --user                              # undo the user-level install
 ```
 
-`--user` works like RTK's global install. It writes adtok's block into `~/.claude/CLAUDE.md` and its hooks and settings into `~/.claude/settings.json`, and keeps its config in `~/.claude/adtok.toml`. A project-level install still wins inside that project.
+`--user` works like RTK's global install. It writes adtok's block into `~/.claude/CLAUDE.md` and its hooks and settings into `~/.claude/settings.json`, and keeps its config in `~/.claude/adtok.toml`. A project-level install still wins inside that project. Before it writes, it copies `settings.json` to `settings.json.adtok-<timestamp>.bak` and keeps the newest five. Every file is written to a temporary file and then swapped in, so an interrupted run never leaves a half-written settings file. Values are checked before anything is touched: a bad `--set` or an unreadable `settings.json` stops `init` with nothing changed.
 
-`init` keeps existing agents, settings and `CLAUDE.md` content, and reports any value it left alone. Re-run it after editing `adtok.toml`.
+With the default config, a user-wide install changes these for **every** project and session:
+
+| What | Value | Effect |
+|---|---|---|
+| `CLAUDE_CODE_SUBAGENT_MODEL` | `sonnet` | subagents without their own `model:` run on Sonnet, not the main model |
+| `ANTHROPIC_DEFAULT_{HAIKU,SONNET,OPUS}_MODEL` | `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5` | the `haiku`/`sonnet`/`opus` aliases are pinned to these IDs until you re-run `init` with a newer adtok |
+| `CLAUDE_CODE_GATEWAY_HINT_HEADERS` | `1` | requests carry `x-claude-code-*` headers (used by `adtok serve`) |
+| `autoCompactWindow` | `250000` | auto-compaction starts at 250K tokens instead of near the model's full window |
+| hooks | `UserPromptSubmit`, `PreModelSwitch`, `PreCompact`, `PostCompact` | tier hint, cache guard on `/model`, compaction keep-list and handoff note; each runs the venv's Python |
+| agents | `Explore`, `architect`, `fixer`, `implementer` in `~/.claude/agents/` | the routing subagents |
+
+Any of these you had already set is kept and reported. `adtok uninstall --user` removes exactly what was added. The hooks run the venv's Python by absolute path, so if you move or rebuild the venv, re-run `init`; `adtok doctor` warns when a hook's interpreter is missing or cannot import adtok.
+
+`init` keeps existing agents, settings and `CLAUDE.md` content, and reports any value it left alone. Re-run it after editing `adtok.toml`. Values passed with `--set` or `--unset` are written into `adtok.toml`, so later runs keep them. `uninstall` removes a setting only if it still has the value adtok wrote; anything you changed afterwards stays.
 
 ## Layers
 

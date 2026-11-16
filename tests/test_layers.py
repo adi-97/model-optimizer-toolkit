@@ -6,7 +6,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import traceback
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -16,7 +15,8 @@ from adtok.digest import digest
 from adtok.doctor import audit
 from adtok.hybrid import install, uninstall
 from adtok.hybrid.hooks import post_compact, pre_compact, pre_tool, run, wrap_test_command
-from adtok.layers import CONFIG, DEFAULTS, load, merge
+from adtok.hybrid.install import hook_command
+from adtok.layers import CONFIG, DEFAULTS, load, merge, save
 
 
 def settings_of(target):
@@ -251,6 +251,10 @@ def test_doctor_finds_prefix_cache_and_conflict_issues():
         "model": "opusplan", "outputStyle": "Terse",
         "env": {"CLAUDE_CODE_EFFORT_LEVEL": "high", "FORCE_PROMPT_CACHING_5M": "1"},
         "hooks": {"PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "rtk hook"}]}]}}))
+    assert not any("rtk hook" in f["message"] for f in audit(target, home=home)["findings"])
+    write(os.path.join(target, ".claude", "settings.local.json"), json.dumps({"hooks": {"PreToolUse": [
+        {"matcher": "Bash|Read|Grep", "hooks": [{"type": "command", "command": hook_command(sys.executable, "pre-tool",
+                                                                                         "http://x", "--test-output")}]}]}}))
     result = audit(target, home=home)
     text = "\n".join(f["message"] for f in result["findings"])
     for needle in ("lines (keep each file under 200", "@imports", "!`command`", "description is 1600", "sets model: opus", "opusplan",
@@ -259,11 +263,131 @@ def test_doctor_finds_prefix_cache_and_conflict_issues():
         assert needle in text, needle
     memory = [c for c in result["components"] if c["kind"] == "memory"][0]
     assert memory["tokens"] < 1000
+    assert not any("cannot import adtok" in f["message"] or "does not exist" in f["message"] for f in result["findings"])
     clean = tempfile.mkdtemp()
-    install(clean, python="/py")
+    install(clean, python=sys.executable)
     findings = audit(clean, home=home)["findings"]
     assert [f for f in findings if f["level"] == "warn"] == [], findings
     assert any(c["kind"] == "adtok block" for c in audit(clean, home=home)["components"])
+    install(clean, python=os.path.join(clean, "gone", "python"))
+    broken = [f["message"] for f in audit(clean, home=home)["findings"] if f["layer"] == "hooks"]
+    assert broken and all("does not exist" in m for m in broken), broken
+
+
+def test_init_set_is_saved_to_config():
+    target = tempfile.mkdtemp()
+    write(os.path.join(target, CONFIG), "# mine\n[routing]\nclassifier = true  \n\n[tools]\nread_guard = false\n")
+    install(target, python="/py", layers={"routing": {"classifier": False}},
+            save={"routing": {"classifier": False}, "tools": {"read_max_lines": 500}, "output": {"concise": True}})
+    text = open(os.path.join(target, CONFIG), encoding="utf-8").read()
+    assert text.startswith("# mine\n") and "classifier = false" in text and "read_max_lines = 500" in text
+    cfg = load(target)
+    assert cfg["routing"]["classifier"] is False and cfg["output"]["concise"] is True
+    install(target, python="/py")
+    assert "UserPromptSubmit" not in settings_of(target)["hooks"]
+    fresh = tempfile.mkdtemp()
+    save(fresh, {"routing": {"classifier": False}})
+    assert load(fresh)["routing"]["classifier"] is False and load(fresh)["context"]["handoff"] is True
+    try:
+        save(fresh, {"routing": {"nope": 1}})
+        raise AssertionError("saved an unknown key")
+    except ValueError:
+        pass
+
+
+def snapshot(root):
+    out = {}
+    for folder, _, files in os.walk(root):
+        for name in files:
+            path = os.path.join(folder, name)
+            out[os.path.relpath(path, root)] = open(path, "rb").read()
+    return out
+
+
+def test_bad_values_are_rejected_before_any_write():
+    target = tempfile.mkdtemp()
+    write(os.path.join(target, ".claude", "settings.local.json"), json.dumps({"permissions": {"allow": ["Read"]}}))
+    install(target, python="/py")
+    before = snapshot(target)
+    for bad in ({"skills": {"mode": "bogus"}}, {"routing": {"profile": "bogus"}}, {"tools": {"read_max_lines": "x"}},
+                {"routing": {"enabled": "yes"}}, {"context": {"compact_window": -1}}):
+        for kwargs in ({"layers": bad}, {"layers": bad, "save": bad}):
+            try:
+                install(target, python="/py", **kwargs)
+                raise AssertionError("accepted %r" % bad)
+            except ValueError:
+                pass
+            assert snapshot(target) == before, bad
+    write(os.path.join(target, ".claude", "settings.local.json"), "{not json")
+    before = snapshot(target)
+    try:
+        install(target, python="/py")
+        raise AssertionError("accepted broken settings")
+    except ValueError as e:
+        assert "settings.local.json is not valid JSON" in str(e)
+    assert snapshot(target) == before
+
+
+def test_uninstall_keeps_values_changed_after_install():
+    target = tempfile.mkdtemp()
+    install(target, python="/py", layers={"tools": {"output_caps": True}})
+    s = settings_of(target)
+    s["autoCompactWindow"] = 300000
+    s["env"]["CLAUDE_CODE_SUBAGENT_MODEL"] = "haiku"
+    write(os.path.join(target, ".claude", "settings.local.json"), json.dumps(s))
+    uninstall(target)
+    assert settings_of(target) == {"autoCompactWindow": 300000, "env": {"CLAUDE_CODE_SUBAGENT_MODEL": "haiku"}}
+    old = tempfile.mkdtemp()
+    install(old, python="/py")
+    manifest = os.path.join(old, ".claude", "adtok.json")
+    data = json.load(open(manifest, encoding="utf-8"))
+    data["env"], data["settings"] = list(data["env"]), list(data["settings"])
+    write(manifest, json.dumps(data))
+    uninstall(old)
+    assert not os.path.exists(os.path.join(old, ".claude", "settings.local.json"))
+
+
+def test_writes_leave_no_temp_files():
+    target = tempfile.mkdtemp()
+    install(target, python="/py")
+    install(target, python="/py", save={"tools": {"read_guard": True}})
+    uninstall(target)
+    assert not [p for p in snapshot(target) if p.endswith(".tmp")], snapshot(target)
+
+
+def test_user_install_backs_up_settings():
+    home = tempfile.mkdtemp()
+    path = os.path.join(home, ".claude", "settings.json")
+    write(path, json.dumps({"permissions": {"allow": ["Read"]}}))
+    result = install(home, python="/py", user=True)
+    assert result["backup"] and json.load(open(result["backup"])) == {"permissions": {"allow": ["Read"]}}
+    assert install(tempfile.mkdtemp(), python="/py")["backup"] is None
+    for _ in range(7):
+        install(home, python="/py", user=True)
+    backups = [f for f in os.listdir(os.path.join(home, ".claude")) if ".adtok-" in f and f.endswith(".bak")]
+    assert len(backups) == 5, backups
+    assert not any(f.endswith(".tmp") for f in os.listdir(os.path.join(home, ".claude")))
+
+
+def test_init_unset_restores_default_and_hook_path_stays_light():
+    target = tempfile.mkdtemp()
+    from adtok.cli import main
+    assert main(["init", target, "--set", "tools.read_guard=true", "--set", "tools.read_max_lines=500"]) is None
+    assert load(target)["tools"]["read_guard"] is True
+    assert main(["init", target, "--unset", "tools.read_guard", "--unset", "tools.read_max_lines"]) is None
+    cfg = load(target)
+    assert cfg["tools"]["read_guard"] is False and cfg["tools"]["read_max_lines"] == 2000
+    for bad in (["--unset", "tools.nope"], ["--set", "tools.read_guard=true", "--unset", "tools.read_guard"]):
+        try:
+            main(["init", target] + bad)
+            raise AssertionError("accepted %r" % bad)
+        except SystemExit:
+            pass
+    code = ("import sys; from adtok.cli import main; from adtok.hybrid import hooks; "
+            "print(sorted(m for m in sys.modules if m.startswith(('adtok.proxy', "
+            "'urllib.request', 'tomllib'))))")
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=ROOT)
+    assert out.stdout.strip() == "[]", out.stdout + out.stderr
 
 
 def skill_fixture():
@@ -315,20 +439,7 @@ def test_skills_report_and_prune_layer():
         os.environ.pop("CLAUDE_CONFIG_DIR", None)
 
 
-def main():
-    tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
-    failed = 0
-    for name, fn in tests:
-        try:
-            fn()
-            print("PASS", name)
-        except Exception:
-            failed += 1
-            print("FAIL", name)
-            traceback.print_exc()
-    print("%d/%d passed" % (len(tests) - failed, len(tests)))
-    return 1 if failed else 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    from runner import run as run_tests
+
+    sys.exit(run_tests(globals()))
