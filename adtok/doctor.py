@@ -1,3 +1,4 @@
+import fnmatch
 import json
 import os
 import re
@@ -181,6 +182,25 @@ def audit(target, home=None):
             os.path.exists(os.path.join(d, "output-styles", style + ".md"))
             for d in (os.path.join(target, ".claude"), home)):
         warn("output", "outputStyle %r matches no file and silently falls back to Default" % style)
+    excludes = settings.get("claudeMdExcludes") if isinstance(settings.get("claudeMdExcludes"), list) else []
+    project = os.path.abspath(target)
+    user_memory = {os.path.normcase(os.path.join(d, "CLAUDE.md"))
+                   for d in (home, os.path.join(os.path.expanduser("~"), ".claude"))}
+    for path in memory_files(target, home):
+        folder = os.path.dirname(path)
+        if os.path.basename(folder) == ".claude":
+            folder = os.path.dirname(folder)
+        if folder == project or not project.startswith(folder) or os.path.normcase(path) in user_memory:
+            continue
+        posix = path.replace("\\", "/")
+        if not any(fnmatch.fnmatch(posix, str(g).replace("\\", "/")) for g in excludes):
+            info("prefix", "%s loads from a parent folder into every session here; if it is unrelated, add it to "
+                 "claudeMdExcludes" % path)
+    for key in ("promptCacheTtl", "subagentPromptCacheTtl"):
+        if key in settings and settings[key] not in ("5m", "1h"):
+            warn("cache", "%s is %r; Claude Code takes \"5m\" or \"1h\"" % (key, settings[key]))
+    if settings.get("idleCompaction") is False:
+        info("cache", "idleCompaction is off; on a subscription it compacts before the 1-hour cache expires")
     if not settings.get("autoCompactWindow") and not env.get("CLAUDE_CODE_AUTO_COMPACT_WINDOW"):
         info("context", "no autoCompactWindow: 1M-context models compact near 967K tokens; set e.g. 250000")
 

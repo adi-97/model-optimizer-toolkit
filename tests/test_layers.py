@@ -369,17 +369,181 @@ def test_user_install_backs_up_settings():
     assert not any(f.endswith(".tmp") for f in os.listdir(os.path.join(home, ".claude")))
 
 
+def cli(argv, code=None):
+    from contextlib import redirect_stderr, redirect_stdout
+    from adtok.cli import main
+
+    out = io.StringIO()
+    with redirect_stdout(out), redirect_stderr(out):
+        result = main(argv)
+    assert result == code, (result, out.getvalue())
+    return out.getvalue()
+
+
+def test_uninstall_without_manifest_keeps_user_values():
+    target = tempfile.mkdtemp()
+    mine = {"env": {"ANTHROPIC_DEFAULT_OPUS_MODEL": "my-own-model", "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-5-5"},
+            "autoCompactWindow": 250000,
+            "hooks": {"PreCompact": [{"hooks": [{"type": "command", "command": hook_command("/py", "pre-compact", "u")}]},
+                                     {"hooks": [{"type": "command", "command": "mine"}]}]}}
+    write(os.path.join(target, ".claude", "settings.local.json"), json.dumps(mine))
+    uninstall(target)
+    assert settings_of(target) == dict(mine, hooks={"PreCompact": [{"hooks": [{"type": "command", "command": "mine"}]}]})
+
+
+def test_old_manifest_upgrade_keeps_values_changed_since():
+    target = tempfile.mkdtemp()
+    install(target, python="/py")
+    manifest = os.path.join(target, ".claude", "adtok.json")
+    data = json.load(open(manifest, encoding="utf-8"))
+    data["env"], data["settings"] = list(data["env"]), list(data["settings"])
+    data.pop("installed_at")
+    write(manifest, json.dumps(data))
+    s = settings_of(target)
+    s["env"]["ANTHROPIC_DEFAULT_OPUS_MODEL"] = "my-own-model"
+    s["autoCompactWindow"] = 400000
+    write(os.path.join(target, ".claude", "settings.local.json"), json.dumps(s))
+    result = install(target, python="/py", save={"context": {"compact_window": 300000}},
+                     layers={"context": {"compact_window": 300000}})
+    s = settings_of(target)
+    assert s["env"]["ANTHROPIC_DEFAULT_OPUS_MODEL"] == "my-own-model" and s["autoCompactWindow"] == 400000
+    assert {"ANTHROPIC_DEFAULT_OPUS_MODEL", "autoCompactWindow"} <= set(result["env_kept_existing"])
+    assert s["env"]["CLAUDE_CODE_SUBAGENT_MODEL"] == "sonnet"
+    first = json.load(open(manifest, encoding="utf-8"))
+    assert first["installed_at"] and isinstance(first["env"], dict)
+    install(target, python="/py")
+    assert json.load(open(manifest, encoding="utf-8"))["installed_at"] == first["installed_at"]
+
+
+def test_failed_install_restores_previous_state():
+    module = sys.modules["adtok.hybrid.install"]
+    target = tempfile.mkdtemp()
+    write(os.path.join(target, ".claude", "settings.local.json"), json.dumps({"permissions": {"allow": ["Read"]}}))
+    install(target, python="/py")
+    before = snapshot(target)
+    real = module.write_agents
+
+    def broken(*args):
+        real(*args)
+        raise OSError(28, "No space left on device")
+
+    module.write_agents = broken
+    try:
+        out = cli(["init", target, "--set", "tools.read_guard=true"], code=2)
+        assert "No space left" in out and "every file was restored" in out, out
+        assert snapshot(target) == before
+        fresh = tempfile.mkdtemp()
+        cli(["init", fresh], code=2)
+        assert snapshot(fresh) == {}, snapshot(fresh)
+    finally:
+        module.write_agents = real
+    assert "nothing was changed" in cli(["init", target, "--set", "skills.mode=bad"], code=2)
+    assert snapshot(target) == before
+
+
+def test_cache_and_prefix_layers_install_and_uninstall():
+    target = tempfile.mkdtemp()
+    install(target, python="/py")
+    assert "promptCacheTtl" not in settings_of(target)
+    layers = {"cache": {"ttl": "1h", "subagent_ttl": "5m", "pin_updates": True},
+              "prefix": {"trim_sections": True, "git_instructions": False}, "skills": {"max_desc_chars": 400}}
+    install(target, python="/py", layers=layers, save=layers)
+    s = settings_of(target)
+    assert s["promptCacheTtl"] == "1h" and s["subagentPromptCacheTtl"] == "5m"
+    assert s["skillListingMaxDescChars"] == 400
+    for name in ("DISABLE_AUTOUPDATER", "CLAUDE_CODE_DISABLE_CFC_PROMPT", "CLAUDE_CODE_DISABLE_WORKFLOWS",
+                 "CLAUDE_CODE_DISABLE_CRON", "CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS"):
+        assert s["env"][name] == "1", name
+    assert 'ttl = "1h"' in open(os.path.join(target, CONFIG), encoding="utf-8").read()
+    findings = "\n".join(f["message"] for f in audit(target, home=tempfile.mkdtemp())["findings"])
+    assert "promptCacheTtl is" not in findings
+    uninstall(target, keep_config=True)
+    assert not os.path.exists(os.path.join(target, ".claude", "settings.local.json"))
+    try:
+        install(target, python="/py", layers={"cache": {"ttl": "2h"}})
+        raise AssertionError("accepted ttl 2h")
+    except ValueError as e:
+        assert "cache.ttl" in str(e)
+
+
+def test_doctor_flags_parent_claude_md_and_bad_ttl():
+    root, home = tempfile.mkdtemp(), tempfile.mkdtemp()
+    target = os.path.join(root, "proj")
+    write(os.path.join(root, "CLAUDE.md"), "unrelated notes\n")
+    write(os.path.join(target, ".claude", "settings.json"), json.dumps({"promptCacheTtl": "2h",
+                                                                         "idleCompaction": False}))
+    text = "\n".join(f["message"] for f in audit(target, home=home)["findings"])
+    assert "claudeMdExcludes" in text and "promptCacheTtl is '2h'" in text and "idleCompaction is off" in text
+    write(os.path.join(target, ".claude", "settings.json"), json.dumps({
+        "claudeMdExcludes": [os.path.join(root, "CLAUDE.md").replace("\\", "/")]}))
+    assert "claudeMdExcludes" not in "\n".join(f["message"] for f in audit(target, home=home)["findings"])
+
+
+def test_hooks_log_activity_and_ledger_compares_sessions():
+    work = tempfile.mkdtemp()
+    events = [("pre-tool", {"tool_name": "Grep", "tool_input": {"pattern": "x", "output_mode": "content"}},
+               {"grep_head_limit": 50}),
+              ("pre-model-switch", {"prompt_cache_warm": True, "estimated_cache_write_usd": 1.0}, {}),
+              ("post-compact", {"compact_summary": "next: tests", "trigger": "auto"}, {}),
+              ("pre-tool", {"tool_name": "Grep", "tool_input": {"pattern": "x"}}, {"grep_head_limit": 50})]
+    for name, event, opts in events:
+        event = dict(event, session_id="s1", cwd=work)
+        run(name, "u", stream=io.StringIO(json.dumps(event)), out=io.StringIO(), **opts)
+    run("pre-tool", "u", stream=io.StringIO(json.dumps({"tool_name": "Grep", "cwd": work, "tool_input": {
+        "output_mode": "content"}})), out=io.StringIO(), grep_head_limit=50)
+    hooks = ledger.read_activity(work)
+    assert hooks == {"s1": {"rewrite": 1, "switch_ask": 1, "handoff": 1}}, hooks
+    rows, compactions, _ = ledger.read_requests(ledger.session_files("/proj", root=transcripts()))
+    late = dict(rows[-1], session="s2", ts=rows[-1]["ts"] + 86400, cost=0.01)
+    rows.append(late)
+    found = {s["session"]: s for s in ledger.activity(rows, compactions, hooks)}
+    s1 = found["s1"]
+    assert s1["main"] == 5 and s1["subagent"] == 1 and s1["compactions"] == 1
+    assert s1["switch_asks"] == 1 and s1["rewrites"] == 1 and s1["handoffs"] == 1 and found["s2"]["hints"] == 0
+    split = ledger.compare(rows, late["ts"] - 1)
+    assert split["before"]["sessions"] == 1 and split["after"]["sessions"] == 1
+    assert split["before"]["requests"] == 6 and abs(split["after"]["cost"] - 0.01) < 1e-12
+    assert abs(split["before"]["subagent_share"] - 1 / 6) < 1e-9
+    install(work, python="/py")
+    ts, path = ledger.install_time(work, home=tempfile.mkdtemp())
+    assert path.endswith("adtok.json") and abs(ts - __import__("time").time()) < 120
+
+
+def test_ledger_compare_and_activity_cli():
+    config = tempfile.mkdtemp()
+    shutil.copytree(transcripts(), os.path.join(config, "projects"))
+    old = os.environ.get("CLAUDE_CONFIG_DIR")
+    os.environ["CLAUDE_CONFIG_DIR"] = config
+    try:
+        out = cli(["ledger", "compare", "--project", "/proj", "--installed-at", "2026-11-10T11:00:00Z"], code=0)
+        assert "from --installed-at" in out and "before" in out and "after" in out, out
+        out = cli(["ledger", "activity", "--project", "/proj"], code=0)
+        assert "s1" in out and "no hook activity logged" in out, out
+        out = cli(["ledger", "ttl", "--project", "/proj"], code=0)
+        assert "main conversation" in out and "subagents" in out and "--set cache.ttl=" in out, out
+        try:
+            cli(["ledger", "compare", "--project", os.path.join(config, "nowhere")])
+            raise AssertionError("compare ran without an install time")
+        except SystemExit as e:
+            assert "installed_at" in str(e)
+    finally:
+        if old is None:
+            os.environ.pop("CLAUDE_CONFIG_DIR")
+        else:
+            os.environ["CLAUDE_CONFIG_DIR"] = old
+
+
 def test_init_unset_restores_default_and_hook_path_stays_light():
     target = tempfile.mkdtemp()
-    from adtok.cli import main
-    assert main(["init", target, "--set", "tools.read_guard=true", "--set", "tools.read_max_lines=500"]) is None
+    out = cli(["init", target, "--set", "tools.read_guard=true", "--set", "tools.read_max_lines=500"])
+    assert "saved --set/--unset values" in out
     assert load(target)["tools"]["read_guard"] is True
-    assert main(["init", target, "--unset", "tools.read_guard", "--unset", "tools.read_max_lines"]) is None
+    cli(["init", target, "--unset", "tools.read_guard", "--unset", "tools.read_max_lines"])
     cfg = load(target)
     assert cfg["tools"]["read_guard"] is False and cfg["tools"]["read_max_lines"] == 2000
     for bad in (["--unset", "tools.nope"], ["--set", "tools.read_guard=true", "--unset", "tools.read_guard"]):
         try:
-            main(["init", target] + bad)
+            cli(["init", target] + bad)
             raise AssertionError("accepted %r" % bad)
         except SystemExit:
             pass

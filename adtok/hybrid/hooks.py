@@ -4,6 +4,7 @@ import re
 import shlex
 import socket
 import sys
+import time
 
 MIN_WORDS = 5
 
@@ -136,7 +137,36 @@ def post_compact(event):
     return None
 
 
-def run(event_name, url, ask_above_usd=0.25, stream=None, out=None, **opts):
+def activity_path(cwd):
+    return os.path.join(cwd or ".", ".claude", "adtok-logs", "activity.jsonl")
+
+
+def action_name(event_name, event, result):
+    if event_name == "user-prompt":
+        text = result["hookSpecificOutput"]["additionalContext"]
+        return "hint:" + text.split(":", 1)[1].split("(", 1)[0].strip()
+    if event_name == "pre-model-switch":
+        return "switch_ask"
+    if event_name == "pre-tool":
+        return "rewrite:%s" % event.get("tool_name")
+    if event_name == "pre-compact":
+        return "compact:%s" % (event.get("trigger") or "unknown")
+    return "handoff"
+
+
+def record(event_name, event, result):
+    try:
+        line = {"ts": round(time.time(), 3), "session": event.get("session_id"),
+                "agent": event.get("agent_id") or "main", "action": action_name(event_name, event, result)}
+        path = activity_path(event.get("cwd"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8", newline="\n") as f:
+            f.write(json.dumps(line) + "\n")
+    except (OSError, KeyError, IndexError, TypeError, AttributeError):
+        pass
+
+
+def run(event_name, url, ask_above_usd=0.25, stream=None, out=None, log=True, **opts):
     event = read_event(stream)
     if event_name == "user-prompt":
         result = user_prompt(event, url)
@@ -150,6 +180,9 @@ def run(event_name, url, ask_above_usd=0.25, stream=None, out=None, **opts):
         result = post_compact(event)
     else:
         raise ValueError("unknown hook %r" % event_name)
+    acted = result or (event_name == "post-compact" and event.get("compact_summary"))
+    if log and acted and event.get("session_id"):
+        record(event_name, event, result)
     if result:
         (out or sys.stdout).write(result if isinstance(result, str) else json.dumps(result))
     return 0
