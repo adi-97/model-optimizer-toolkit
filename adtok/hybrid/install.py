@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import json
 import os
@@ -6,7 +7,7 @@ import shutil
 import sys
 import time
 
-from ..layers import CONFIG, TEMPLATE, plan, write_atomic
+from ..layers import CONFIG, DEFAULTS, TEMPLATE, plan, write_atomic
 from ..layers import load as load_layers
 from ..layers import save as save_layers
 from ..models import LATEST
@@ -122,13 +123,25 @@ def merge_settings(path, env, hooks, keys=None):
 
 
 def strip_values(store, installed):
-    if isinstance(installed, dict):
-        for key, value in installed.items():
-            if store.get(key) == value:
-                store.pop(key)
-    else:
-        for key in installed:
-            store.pop(key, None)
+    for key, value in installed.items():
+        if key in store and store[key] == value:
+            store.pop(key)
+
+
+def recorded(manifest, field, known):
+    value = manifest.get(field, {})
+    if isinstance(value, dict):
+        return value
+    return {k: known[k] for k in value if k in known}
+
+
+def current_plan(target):
+    try:
+        cfg = load_layers(target, create=False)
+    except (OSError, ValueError):
+        cfg = copy.deepcopy(DEFAULTS)
+    keys, env, _ = plan(cfg)
+    return keys, dict(ENV, **env)
 
 
 def strip_settings(path, env, keys=()):
@@ -178,6 +191,50 @@ def strip_overrides(path, ours_map):
         os.remove(path)
 
 
+class Snapshot:
+    def __init__(self, paths):
+        self.files = {}
+        self.dirs = set()
+        for path in paths:
+            self.files[path] = read_bytes(path) if os.path.isfile(path) else None
+            folder = os.path.dirname(path)
+            while folder and not os.path.exists(folder):
+                self.dirs.add(folder)
+                folder = os.path.dirname(folder)
+
+    def restore(self):
+        failed = []
+        for path, data in self.files.items():
+            try:
+                if data is None:
+                    if os.path.exists(path):
+                        os.remove(path)
+                elif not os.path.isfile(path) or read_bytes(path) != data:
+                    write_atomic_bytes(path, data)
+            except OSError:
+                failed.append(path)
+        for folder in sorted(self.dirs, key=len, reverse=True):
+            try:
+                if os.path.isdir(folder) and not os.listdir(folder):
+                    os.rmdir(folder)
+            except OSError:
+                pass
+        return failed
+
+
+def read_bytes(path):
+    with open(path, "rb") as f:
+        return f.read()
+
+
+def write_atomic_bytes(path, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".adtok-restore.tmp"
+    with open(tmp, "wb") as f:
+        f.write(data)
+    os.replace(tmp, path)
+
+
 def scope_files(target, user):
     if user:
         return os.path.join(target, ".claude", "CLAUDE.md"), os.path.join(target, ".claude", "settings.json")
@@ -194,15 +251,29 @@ def install(target, profile=None, url="http://127.0.0.1:8787", python=None, forc
     if switch_ask_usd is not None:
         routing["switch_ask_usd"] = switch_ask_usd
     overrides["routing"] = routing
-    cfg = load_layers(target, overrides, create=False)
+    load_layers(target, overrides, create=False)
     read_json(settings_path)
     manifest_path = os.path.join(target, MANIFEST)
-    read_json(manifest_path)
+    previous = read_json(manifest_path)
+    known = current_plan(target)
+    names = sorted(set(agent_templates()) | set(previous.get("agents", [])))
+    snapshot = Snapshot([settings_path, claude_md, manifest_path, os.path.join(target, CONFIG)]
+                        + [os.path.join(target, ".claude", "agents", n) for n in names])
+    try:
+        return apply_install(target, claude_md, settings_path, manifest_path, previous, known, overrides, save,
+                             url, python, force, user)
+    except Exception as e:
+        e.adtok_unrestored = snapshot.restore()
+        raise
+
+
+def apply_install(target, claude_md, settings_path, manifest_path, previous, known, overrides, save, url, python,
+                  force, user):
     if save:
         save_layers(target, save)
     backup = backup_settings(settings_path) if user else None
-    if os.path.exists(manifest_path):
-        uninstall(target, keep_config=True, user=user)
+    if previous:
+        uninstall(target, keep_config=True, user=user, known=known)
     cfg = load_layers(target, overrides)
     profile = cfg["routing"]["profile"]
     python = python or sys.executable
@@ -219,6 +290,7 @@ def install(target, profile=None, url="http://127.0.0.1:8787", python=None, forc
             hooks += [("PreModelSwitch", None, hook_command(python, "pre-model-switch", url, "--ask-above-usd %.2f"
                                                             % cfg["routing"]["switch_ask_usd"]), 5)]
     kept = merge_settings(settings_path, env, hooks, keys)
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     pruned = {}
     if cfg["skills"]["prune_unused"]:
         from ..skills import prune_plan
@@ -228,7 +300,8 @@ def install(target, profile=None, url="http://127.0.0.1:8787", python=None, forc
     manifest = {"profile": profile, "scope": "user" if user else "project", "agents": written,
                 "agent_sha": {n: digest_of(target, n) for n in written},
                 "env": {k: v for k, v in env.items() if k not in kept},
-                "settings": {k: v for k, v in keys.items() if k not in kept}, "skill_overrides": pruned, "url": url}
+                "settings": {k: v for k, v in keys.items() if k not in kept}, "skill_overrides": pruned, "url": url,
+                "installed_at": previous.get("installed_at") or now, "updated_at": now}
     write_json(manifest_path, manifest)
     return {"agents_written": written, "agents_skipped": skipped, "env_kept_existing": kept, "profile": profile,
             "routing": cfg["routing"]["enabled"], "settings": keys, "env": env, "skill_overrides": pruned,
@@ -273,11 +346,23 @@ def write_agents(target, force):
     return written, skipped
 
 
-def uninstall(target, keep_config=False, user=False):
+def uninstall(target, keep_config=False, user=False, known=None):
     claude_md, settings_path = scope_files(target, user)
     path = os.path.join(target, MANIFEST)
     manifest = read_json(path)
     read_json(settings_path)
+    if known is not None:
+        return apply_uninstall(target, claude_md, settings_path, path, manifest, keep_config, known)
+    agents = [os.path.join(target, ".claude", "agents", n) for n in manifest.get("agents", [])]
+    snapshot = Snapshot([settings_path, claude_md, path, os.path.join(target, CONFIG)] + agents)
+    try:
+        return apply_uninstall(target, claude_md, settings_path, path, manifest, keep_config, current_plan(target))
+    except Exception as e:
+        e.adtok_unrestored = snapshot.restore()
+        raise
+
+
+def apply_uninstall(target, claude_md, settings_path, path, manifest, keep_config, known):
     agents_dir = os.path.join(target, ".claude", "agents")
     removed = []
     for name in manifest.get("agents", []):
@@ -290,7 +375,8 @@ def uninstall(target, keep_config=False, user=False):
         os.rmdir(agents_dir)
     strip_claude_md(claude_md)
     strip_overrides(settings_path, manifest.get("skill_overrides", {}))
-    strip_settings(settings_path, manifest.get("env", list(ENV)), manifest.get("settings", []))
+    known_keys, known_env = known
+    strip_settings(settings_path, recorded(manifest, "env", known_env), recorded(manifest, "settings", known_keys))
     if os.path.exists(path):
         os.remove(path)
     config = os.path.join(target, CONFIG)

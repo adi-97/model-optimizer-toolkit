@@ -13,9 +13,13 @@ DEFAULTS = {
     "context": {"compact_window": 250000, "handoff": True, "quiet_background": False},
     "tools": {"test_output": False, "read_guard": False, "read_max_lines": 2000, "grep_head_limit": 200,
               "output_caps": False, "bash_max_chars": 15000, "mcp_max_tokens": 10000},
+    "cache": {"ttl": "", "subagent_ttl": "", "pin_updates": False},
+    "prefix": {"trim_sections": False, "git_instructions": True},
     "output": {"concise": False},
-    "skills": {"prune_unused": False, "unused_days": 30, "mode": "name-only"},
+    "skills": {"prune_unused": False, "unused_days": 30, "mode": "name-only", "max_desc_chars": 0},
 }
+TTLS = ("", "5m", "1h")
+TRIMMED_SECTIONS = ("CLAUDE_CODE_DISABLE_CFC_PROMPT", "CLAUDE_CODE_DISABLE_WORKFLOWS", "CLAUDE_CODE_DISABLE_CRON")
 
 TEMPLATE = """[routing]
 enabled = true
@@ -37,6 +41,15 @@ output_caps = false
 bash_max_chars = 15000
 mcp_max_tokens = 10000
 
+[cache]
+ttl = ""
+subagent_ttl = ""
+pin_updates = false
+
+[prefix]
+trim_sections = false
+git_instructions = true
+
 [output]
 concise = false
 
@@ -44,6 +57,7 @@ concise = false
 prune_unused = false
 unused_days = 30
 mode = "name-only"
+max_desc_chars = 0
 """
 
 
@@ -75,9 +89,11 @@ def validate(cfg):
             if not ok:
                 raise ValueError("%s.%s must be %s, got %r" % (section, key, kind, value))
     for name, value, allowed in (("routing.profile", cfg["routing"]["profile"], PROFILES),
-                                 ("skills.mode", cfg["skills"]["mode"], SKILL_MODES)):
+                                 ("skills.mode", cfg["skills"]["mode"], SKILL_MODES),
+                                 ("cache.ttl", cfg["cache"]["ttl"], TTLS),
+                                 ("cache.subagent_ttl", cfg["cache"]["subagent_ttl"], TTLS)):
         if value not in allowed:
-            raise ValueError("%s must be one of %s, got %r" % (name, ", ".join(allowed), value))
+            raise ValueError("%s must be one of %s, got %r" % (name, ", ".join(repr(a) for a in allowed), value))
     return cfg
 
 
@@ -164,6 +180,19 @@ def plan(layers):
     if tools["output_caps"]:
         settings["bashOutputMaxChars"] = int(tools["bash_max_chars"])
         env["MAX_MCP_OUTPUT_TOKENS"] = str(int(tools["mcp_max_tokens"]))
+    cache, prefix, skills = layers["cache"], layers["prefix"], layers["skills"]
+    if cache["ttl"]:
+        settings["promptCacheTtl"] = cache["ttl"]
+    if cache["subagent_ttl"]:
+        settings["subagentPromptCacheTtl"] = cache["subagent_ttl"]
+    if cache["pin_updates"]:
+        env["DISABLE_AUTOUPDATER"] = "1"
+    if prefix["trim_sections"]:
+        env.update((name, "1") for name in TRIMMED_SECTIONS)
+    if not prefix["git_instructions"]:
+        env["CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS"] = "1"
+    if skills["max_desc_chars"]:
+        settings["skillListingMaxDescChars"] = int(skills["max_desc_chars"])
     if output["concise"]:
         settings["outputStyle"] = "Concise"
     if ctx["handoff"]:

@@ -43,6 +43,21 @@ def start_upstream():
     return server, "http://127.0.0.1:%d" % server.server_address[1]
 
 
+def stop_upstream(server):
+    server.shutdown()
+    server.server_close()
+
+
+def read_text(path):
+    with open(path, encoding="utf-8") as f:
+        return f.read()
+
+
+def read_json(path):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def write_suite(tmp, upstream, budget=10.0, prompt="please FIX the broken thing in this small repository",
                 template=None):
     os.makedirs(os.path.join(tmp, "task"), exist_ok=True)
@@ -113,7 +128,7 @@ def test_git_template_applies_planted_bug():
         raise unittest.SkipTest("template repo %s is missing (clone laya-model next to this repo)" % repo)
     dest = os.path.join(tempfile.mkdtemp(), "ws")
     protected = workspace.prepare(suite.task("bugfix-structured"), dest)
-    src = open(os.path.join(dest, "laya", "structured.py"), encoding="utf-8").read()
+    src = read_text(os.path.join(dest, "laya", "structured.py"))
     assert "range(lo, hi)]" in src and "values[f.name] = idx\n" in src
     log = subprocess.run(["git", "log", "--oneline"], cwd=dest, capture_output=True, text=True).stdout
     assert len(log.strip().splitlines()) == 1, log
@@ -147,14 +162,14 @@ def test_end_to_end_run_resume_and_report():
         assert by_arm["routed"]["usage"]["models"] == {"claude-haiku-5-5": 1}
         assert by_arm["routed"]["usage"]["cost_usd"] < by_arm["baseline"]["usage"]["cost_usd"]
         for r in outcomes:
-            cfg = json.load(open(os.path.join(suite.results_dir, "t1", r["arm"], "rep-1", "proxy.json")))
+            cfg = read_json(os.path.join(suite.results_dir, "t1", r["arm"], "rep-1", "proxy.json"))
             assert not port_open(cfg["port"]), "proxy for %s still listening" % r["arm"]
         again = run_suite(suite, log=logs.append)
         assert again == [] and sum("already done" in line for line in logs) == 2
         text = build(load_results(suite.results_dir), "baseline")
         assert "## t1" in text and "n<2 per arm" in text and "claude-haiku-5-5 $" in text and "proxy" in text
     finally:
-        server.shutdown()
+        stop_upstream(server)
 
 
 def test_unchanged_check_and_budget_skip():
@@ -174,7 +189,7 @@ def test_unchanged_check_and_budget_skip():
         assert "tests/guard.txt" in checks["tests_unchanged"]["output"]
         assert ran[0]["accepted"] is False
     finally:
-        server.shutdown()
+        stop_upstream(server)
 
 
 def test_hybrid_arm_installs_config_and_measures_without_proxy_traffic():
@@ -196,8 +211,8 @@ def test_hybrid_arm_installs_config_and_measures_without_proxy_traffic():
         assert r["tokens"]["source"] == "agent_report" and abs(r["tokens"]["cost_usd"] - 0.0124) < 1e-9
         assert r["tokens"]["cache_read"] == 5000 and r["tokens"]["output"] == 250
         ws = os.path.join(suite.results_dir, "t1", "hybrid", "rep-1", "workspace")
-        seen = json.load(open(os.path.join(ws, "seen_settings.json")))
-        cfg = json.load(open(os.path.join(suite.results_dir, "t1", "hybrid", "rep-1", "proxy.json")))
+        seen = read_json(os.path.join(ws, "seen_settings.json"))
+        cfg = read_json(os.path.join(suite.results_dir, "t1", "hybrid", "rep-1", "proxy.json"))
         hook = seen["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"]
         assert "--url http://127.0.0.1:%d" % cfg["port"] in hook
         assert os.path.exists(os.path.join(ws, ".claude", "agents", "Explore.md"))
@@ -207,7 +222,7 @@ def test_hybrid_arm_installs_config_and_measures_without_proxy_traffic():
         text = build(load_results(suite.results_dir), "baseline")
         assert "agent_report" in text
     finally:
-        server.shutdown()
+        stop_upstream(server)
 
 
 def test_verdict():

@@ -148,6 +148,89 @@ def misses(rows, compactions=None, min_tokens=2000, share=0.5):
     return sorted(found, key=lambda m: -m["usd"])
 
 
+def install_time(project=None, home=None):
+    home = home or os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
+    paths = ([os.path.join(project, ".claude", "adtok.json")] if project else []) + [os.path.join(home, "adtok.json")]
+    for path in paths:
+        try:
+            with open(path, encoding="utf-8") as f:
+                manifest = json.load(f)
+        except (OSError, ValueError):
+            continue
+        ts = parse_ts(manifest.get("installed_at")) if isinstance(manifest, dict) else None
+        if ts:
+            return ts, path
+    return None, None
+
+
+def read_activity(project):
+    counts = {}
+    path = os.path.join(project or ".", ".claude", "adtok-logs", "activity.jsonl")
+    if not os.path.exists(path):
+        return counts
+    for r in iter_records(path):
+        if not isinstance(r, dict) or not r.get("session") or not r.get("action"):
+            continue
+        kind = str(r["action"]).split(":", 1)[0]
+        c = counts.setdefault(r["session"], {})
+        c[kind] = c.get(kind, 0) + 1
+        if kind == "hint":
+            c[r["action"]] = c.get(r["action"], 0) + 1
+    return counts
+
+
+def sessions(rows):
+    out = {}
+    for row in rows:
+        s = out.setdefault(row["session"], {"session": row["session"], "start": row["ts"], "end": row["ts"],
+                                            "requests": 0, "main": 0, "subagent": 0, "cost": 0.0,
+                                            "subagent_cost": 0.0, "models": {}})
+        s["start"], s["end"] = min(s["start"], row["ts"]), max(s["end"], row["ts"])
+        s["requests"] += 1
+        s["cost"] += row["cost"]
+        side = "main" if row["agent"] == "main" else "subagent"
+        s[side] += 1
+        if side == "subagent":
+            s["subagent_cost"] += row["cost"]
+        s["models"][row["model"]] = s["models"].get(row["model"], 0) + 1
+    return sorted(out.values(), key=lambda s: s["start"])
+
+
+def median(values):
+    values = sorted(values)
+    n = len(values)
+    if not n:
+        return 0.0
+    return values[n // 2] if n % 2 else (values[n // 2 - 1] + values[n // 2]) / 2
+
+
+def compare(rows, cutoff):
+    halves = {"before": [], "after": []}
+    for s in sessions(rows):
+        halves["after" if s["start"] >= cutoff else "before"].append(s)
+    out = {}
+    for name, group in halves.items():
+        costs = [s["cost"] for s in group]
+        requests = sum(s["requests"] for s in group)
+        out[name] = {"sessions": len(group), "requests": requests, "cost": sum(costs),
+                     "mean": sum(costs) / len(costs) if costs else 0.0, "median": median(costs),
+                     "per_request": sum(costs) / requests if requests else 0.0,
+                     "subagent_share": sum(s["subagent"] for s in group) / requests if requests else 0.0}
+    return out
+
+
+def activity(rows, compactions=None, hooks=None):
+    compactions, hooks = compactions or {}, hooks or {}
+    out = []
+    for s in sessions(rows):
+        h = hooks.get(s["session"], {})
+        out.append(dict(s, compactions=len(compactions.get(s["session"], [])), hints=h.get("hint", 0),
+                        switch_asks=h.get("switch_ask", 0), rewrites=h.get("rewrite", 0),
+                        handoffs=h.get("handoff", 0),
+                        tiers={k.split(":", 1)[1]: v for k, v in h.items() if k.startswith("hint:")}))
+    return out
+
+
 def ttl_cost(seq, ttl, pricing=None):
     pricing = pricing or Pricing()
     total, prev = 0.0, None

@@ -6,18 +6,18 @@ adtok (published as model-optimizer-toolkit) is one package that cuts and measur
 
 ## Commands
 
-The project venv is `.venv` (Python 3.11, CUDA torch, `laya` installed editable from `../laya-model`). Set `USE_TF=0` for anything that loads the classifier.
+The project venv is `.venv` (Python 3.11, CUDA torch, `laya` installed editable from `../laya-model`). Set `USE_TF=0` for anything that loads the classifier. Activate the venv first (`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` on Linux/macOS) so `python` and `ruff` below are the venv's, as in CI; without activating, use `.venv/Scripts/python` (Windows) or `.venv/bin/python` (Linux/macOS).
 
 ```bash
-.venv/Scripts/python tests/test_layers.py     # layer config, install/uninstall, tool and compact hooks, ledger, doctor
-.venv/Scripts/python tests/test_proxy.py      # proxy routing, streaming, budgets, hint headers
-.venv/Scripts/python tests/test_hybrid.py     # installer, hooks, classify endpoint
-.venv/Scripts/python tests/test_harness.py    # suite parsing, workspaces, fake-agent end-to-end runs
-.venv/Scripts/ruff check adtok/ tests/ scripts/ bench/ --select=E9,F63,F7,F82,F401,F811 --line-length=120
-.venv/Scripts/python -m compileall -q adtok tests scripts bench
+python tests/test_layers.py     # layer config, install/uninstall, tool and compact hooks, ledger, doctor
+python tests/test_proxy.py      # proxy routing, streaming, budgets, hint headers
+python tests/test_hybrid.py     # installer, hooks, classify endpoint
+python tests/test_harness.py    # suite parsing, workspaces, fake-agent end-to-end runs
+ruff check adtok/ tests/ scripts/ bench/ --select=E9,F63,F7,F82,F401,F811 --line-length=120
+python -m compileall -q adtok tests scripts bench
 ```
 
-The test files are plain scripts (shared loop in `tests/runner.py`) that print PASS/FAIL/SKIP and exit non-zero on failure; pass test names to run only those, e.g. `python tests/test_layers.py test_init_set_is_saved_to_config`. `pip install -e ".[dev]"` adds what the tests and CI need (`httpx2` for Starlette's TestClient, ruff). CI (`.github/workflows/ci.yml`) runs all of the above on Linux and Windows. They run offline: fixture transcripts, a mock upstream, `classifier_model = "stub:<tier>"` and `tests/fake_claude.py` stand in for the API, the model and Claude Code.
+The test files are plain scripts (shared loop in `tests/runner.py`) that print PASS/FAIL/SKIP and exit non-zero on failure; pass test names to run only those, e.g. `python tests/test_layers.py test_init_set_is_saved_to_config`. `pip install -e ".[dev]"` adds what the tests and CI need (`httpx2` for Starlette's TestClient, ruff). CI (`.github/workflows/ci.yml`) runs all of the above on Linux and Windows with Python 3.11, 3.12 and 3.13. They run offline: fixture transcripts, a mock upstream, `classifier_model = "stub:<tier>"` and `tests/fake_claude.py` stand in for the API, the model and Claude Code.
 
 ```bash
 adtok classify "Fix the typo in the README"              # tier + route with the real classifier
@@ -25,7 +25,7 @@ adtok serve [--config adtok.hybrid.toml] [--shadow]  # proxy + classify endpoint
 adtok init <project> [--set tools.test_output=true] [--unset tools.read_guard]  # saves to .claude/adtok.toml, installs; uninstall reverses it
 adtok doctor <project>                                    # prefix tokens, cache invalidators, layer conflicts
 adtok skills <project>                                    # per-skill listing cost, body size, uses
-adtok ledger [usage|misses|ttl] --project <dir>           # cost from ~/.claude/projects transcripts
+adtok ledger [usage|misses|ttl|compare|activity] --project <dir>  # cost from ~/.claude/projects transcripts
 adtok bench plan|run|report bench/core/suite.toml        # benchmark; results go outside the repo
 adtok stats --since 7d --by route                        # proxy usage ledger
 ```
@@ -40,7 +40,7 @@ Classifier training: `scripts/import_external.py` then `scripts/build_dataset.py
 - The hook path (`adtok.cli hook` -> `adtok.hybrid.hooks`) runs on every prompt or tool call: keep its imports light (no `adtok.proxy`, `tomllib` or `urllib.request` at import time; a test enforces this).
 - `adtok/hybrid/`: `install.py` applies a plan: `templates/agents/*.md` (tracked by hash so upgrades replace them), the `CLAUDE.md` block between `adtok` markers, settings/env/hooks merged into `.claude/settings.local.json` keeping any value the user set, and a manifest that `uninstall` reverses. Re-running `init` uninstalls first. `hooks.py` is the single dispatcher per event: `UserPromptSubmit` tier hint (fails open), `PreModelSwitch` cache guard, `PreToolUse` (allowlisted test-command wrapper, Read `limit`, Grep `head_limit`; copies every input field, skips auto mode, never edits output), `PreCompact` keep-list and `PostCompact` handoff note.
 - `adtok/digest.py`: stdin filter behind the test wrapper; above 8,000 characters it prints error lines + tail + the saved log path.
-- `adtok/ledger.py`: transcript reader (dedupe by message id + request id, subagent files, 1h/5m writes), `misses` (cache rebuilds with a cause) and `ttl_advice` (re-price real gaps under 5m vs 1h). `adtok/doctor.py`: offline prefix audit and lint rules. `adtok/skills.py`: skill discovery, listing cost after `skillOverrides`, use from transcripts, and the `skills.prune_unused` plan (never prunes skills under `skills/synced`). The core is stdlib-only; Laya/torch are the `classifier` extra, and `install.ps1`/`install.sh` wrap setup. Training: `docs/training.md`.
+- `adtok/ledger.py`: transcript reader (dedupe by message id + request id, subagent files, 1h/5m writes), `misses` (cache rebuilds with a cause) and `ttl_advice` (re-price real gaps under 5m vs 1h), `compare` (sessions before/after the manifest's `installed_at`) and `activity` (main vs subagent requests, compactions, and hook actions from `.claude/adtok-logs/activity.jsonl`, which `hooks.record` appends to only when a hook acts). `adtok/doctor.py`: offline prefix audit and lint rules. `adtok/skills.py`: skill discovery, listing cost after `skillOverrides`, use from transcripts, and the `skills.prune_unused` plan (never prunes skills under `skills/synced`). The core is stdlib-only; Laya/torch are the `classifier` extra, and `install.ps1`/`install.sh` wrap setup. Training: `docs/training.md`.
 - `adtok/harness/`: suite TOML (`suite.py`), fresh workspace per run from git archive + patch or a copy (`workspace.py`), one proxy per run on a free port, killed by process handle (`runner.py`), hidden acceptance checks, and a report with mean ± sd and a noise test (`report.py`). Arms with `route_traffic = false` are measured from Claude Code's own `modelUsage`; arms that route through the proxy need `ANTHROPIC_API_KEY` unless the suite sets `allow_subscription_proxy = true`.
 - `bench/core/`: arms `baseline`, `concise`, `native`, `hybrid`, `ensemble`, `ensemble-tools`, `routed` (arms set `layers` overrides); the `bugfix-structured` task (planted bug in a `laya-model` copy) and the `greenfield-genexp` task (hidden checker in `check.py`).
 - `scripts/`: classifier dataset build (`import_external.py`, `build_dataset.py`) and evaluation (`evaluate.py`).

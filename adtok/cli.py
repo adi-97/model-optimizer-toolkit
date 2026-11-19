@@ -65,7 +65,8 @@ def print_row(r):
 def cmd_classify(args):
     from .proxy import load_config
     from .proxy.policy import Router
-    from .proxy.pricing import LATEST, Pricing
+    from .models import LATEST
+    from .proxy.pricing import Pricing
     from . import TierClassifier
 
     config = load_config(args.config, classifier_model=args.classifier_model, classifier_device=args.device)
@@ -221,9 +222,52 @@ def cmd_ledger(args):
     files = ledger.session_files(args.project)
     if args.session:
         files = [f for f in files if args.session in f]
-    rows, compactions, _ = ledger.read_requests(files, since=parse_since(args.since))
+    cutoff, source = None, None
+    if args.installed_at:
+        cutoff, source = ledger.parse_ts(args.installed_at), "--installed-at"
+        if cutoff is None:
+            raise SystemExit("--installed-at takes an ISO date or time, e.g. 2026-11-01 or 2026-11-01T09:30:00Z")
+    elif args.view == "compare" or args.since_install:
+        cutoff, source = ledger.install_time(args.project or ".")
+        if cutoff is None:
+            raise SystemExit("no installed_at in .claude/adtok.json or ~/.claude/adtok.json (re-run adtok init, "
+                             "or pass --installed-at)")
+    since = parse_since(args.since)
+    if args.since_install:
+        since = max(since, cutoff)
+    rows, compactions, _ = ledger.read_requests(files, since=since)
     if not rows:
         print("no requests found (%d transcript files)" % len(files))
+        return 0
+    if args.view == "compare":
+        result = ledger.compare(rows, cutoff)
+        print("split at %s (from %s); a session counts by its first request"
+              % (time.strftime("%Y-%m-%d %H:%M", time.localtime(cutoff)), source))
+        print("%-7s %8s %8s %10s %10s %10s %11s %9s" % ("", "sessions", "req", "cost_$", "mean_$", "median_$",
+                                                       "$/request", "subagent"))
+        for name in ("before", "after"):
+            r = result[name]
+            print("%-7s %8d %8d %10.3f %10.3f %10.3f %11.4f %8.0f%%" % (
+                name, r["sessions"], r["requests"], r["cost"], r["mean"], r["median"], r["per_request"],
+                100 * r["subagent_share"]))
+        b, a = result["before"], result["after"]
+        if b["sessions"] and a["sessions"] and b["median"]:
+            print("median session cost %+.0f%% after install; sessions differ in size and task, so read this as a "
+                  "trend, not a benchmark" % (100 * (a["median"] - b["median"]) / b["median"]))
+        return 0
+    if args.view == "activity":
+        found = ledger.activity(rows, compactions, ledger.read_activity(args.project or "."))
+        print("%-12s %-11s %5s %5s %5s %7s %5s %6s %6s %8s %9s" % ("session", "started", "main", "sub", "sub$%",
+                                                                  "compact", "hints", "switch", "rewrite",
+                                                                  "handoff", "cost_$"))
+        for s in found[-args.top:]:
+            print("%-12s %-11s %5d %5d %4.0f%% %7d %5d %6d %6d %8d %9.3f" % (
+                str(s["session"])[:12], time.strftime("%m-%d %H:%M", time.localtime(s["start"])), s["main"],
+                s["subagent"], 100 * s["subagent_cost"] / s["cost"] if s["cost"] else 0, s["compactions"],
+                s["hints"], s["switch_asks"], s["rewrites"], s["handoffs"], s["cost"]))
+        if not any(s["hints"] or s["switch_asks"] or s["rewrites"] or s["handoffs"] for s in found):
+            print("no hook activity logged for these sessions (hooks log to .claude/adtok-logs/activity.jsonl in "
+                  "the project%s)" % ("" if args.project else "; pass --project"))
         return 0
     if args.view == "misses":
         found = ledger.misses(rows, compactions)
@@ -234,10 +278,14 @@ def cmd_ledger(args):
                 time.strftime("%m-%d %H:%M", time.localtime(m["ts"])), m["cause"]))
         return 0
     if args.view == "ttl":
-        a = ledger.ttl_advice(rows)
-        print("cache cost re-priced on your real request gaps: 5m TTL $%.2f, 1h TTL $%.2f -> %s is cheaper by $%.2f"
-              % (a["cache_usd_5m"], a["cache_usd_1h"], a["cheaper"], a["saving_usd"]))
-        print("set it with promptCacheTtl / subagentPromptCacheTtl in settings (\"5m\" or \"1h\")")
+        print("cache cost re-priced on your real request gaps:")
+        for label, key, part in (("main conversation", "cache.ttl", [r for r in rows if r["agent"] == "main"]),
+                                 ("subagents", "cache.subagent_ttl", [r for r in rows if r["agent"] != "main"])):
+            if not part:
+                continue
+            a = ledger.ttl_advice(part)
+            print("  %-18s 5m $%.2f, 1h $%.2f -> %s cheaper by $%.2f;  adtok init --set %s=\"%s\"" % (
+                label, a["cache_usd_5m"], a["cache_usd_1h"], a["cheaper"], a["saving_usd"], key, a["cheaper"]))
         return 0
     groups = ledger.summarize(rows, args.by)
     print("%-38s %6s %9s %9s %9s %11s %9s %6s %9s" % (args.by, "req", "input", "write5m", "write1h", "read",
@@ -376,10 +424,12 @@ def main(argv=None):
     doctor.set_defaults(func=cmd_doctor)
 
     led = sub.add_parser("ledger", help="token and cost ledger from Claude Code transcripts")
-    led.add_argument("view", nargs="?", default="usage", choices=["usage", "misses", "ttl"])
+    led.add_argument("view", nargs="?", default="usage", choices=["usage", "misses", "ttl", "compare", "activity"])
     led.add_argument("--project", help="project directory (default: all projects)")
     led.add_argument("--session")
     led.add_argument("--since", default="all")
+    led.add_argument("--since-install", action="store_true", help="only sessions after adtok was installed")
+    led.add_argument("--installed-at", help="split or filter at this time instead of the manifest's installed_at")
     led.add_argument("--by", default="session", choices=["session", "model", "agent", "day"])
     led.add_argument("--top", type=int, default=20)
     led.set_defaults(func=cmd_ledger)
@@ -415,8 +465,15 @@ def main(argv=None):
     if args.func in (cmd_init, cmd_uninstall):
         try:
             return args.func(args)
-        except ValueError as e:
-            print("adtok %s: %s (nothing was changed)" % (args.command, e), file=sys.stderr)
+        except (ValueError, OSError) as e:
+            unrestored = getattr(e, "adtok_unrestored", [])
+            if unrestored:
+                note = "could not restore: %s; check them by hand" % ", ".join(unrestored)
+            elif hasattr(e, "adtok_unrestored"):
+                note = "every file was restored to how it was before"
+            else:
+                note = "nothing was changed"
+            print("adtok %s: %s (%s)" % (args.command, e, note), file=sys.stderr)
             return 2
     return args.func(args)
 

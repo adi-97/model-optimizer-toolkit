@@ -35,6 +35,8 @@ adtok skills path/to/project                        # skill listing cost, body s
 adtok ledger --project path/to/project --by model   # tokens and $ from Claude Code's own transcripts
 adtok ledger misses --project path/to/project       # each cache rebuild, its cost and its likely cause
 adtok ledger ttl --project path/to/project          # your sessions re-priced under 5m vs 1h cache lifetime
+adtok ledger compare --project path/to/project      # per-session cost before vs after adtok was installed
+adtok ledger activity --project path/to/project     # per session: main vs subagent requests, compactions, hook actions
 adtok uninstall path/to/project                     # removes exactly what init added
 adtok init --user                                   # every project: ~/.claude/settings.json, CLAUDE.md, agents/
 adtok uninstall --user                              # undo the user-level install
@@ -68,8 +70,15 @@ Any of these you had already set is kept and reported. `adtok uninstall --user` 
 | tools | `test_output` | off | `PreToolUse` wraps allowlisted test/build/lint commands: output over 8,000 characters is cut to matching error lines plus the last 60 lines and a path to the full log; the exit code is kept. Skipped in auto mode, for compound commands and for anything not on the allowlist |
 | tools | `read_guard` | off | adds `limit` to Reads of files over `read_max_lines` and `head_limit` to content Greps; never edits output, so Read de-duplication and edit anchors stay intact |
 | tools | `output_caps` | off | `bashOutputMaxChars` and `MAX_MCP_OUTPUT_TOKENS` |
+| cache | `ttl`, `subagent_ttl` | unset | `promptCacheTtl` / `subagentPromptCacheTtl` (`"5m"` or `"1h"`). A 1-hour write costs 2× input against 1.25×, so the right value depends on how often you go idle for 5–60 minutes; `adtok ledger ttl` re-prices your own sessions under both and prints the `--set` to use |
+| cache | `pin_updates` | off | `DISABLE_AUTOUPDATER=1`: the first session after a Claude Code upgrade starts uncached, so update between sessions instead of mid-day |
+| prefix | `trim_sections` | off | `CLAUDE_CODE_DISABLE_CFC_PROMPT`, `CLAUDE_CODE_DISABLE_WORKFLOWS`, `CLAUDE_CODE_DISABLE_CRON`: drops system-prompt sections you never use. They change the prefix, so they take effect in the next session |
+| prefix | `git_instructions` | on | `false` sets `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS=1`; saves a little more but loses the built-in commit and PR guidance |
 | output | `concise` | off | the built-in `Concise` output style (cache-safe to switch) |
 | skills | `prune_unused`, `unused_days`, `mode` | off, `30`, `name-only` | `skillOverrides` for your own skills and commands with no use in the last `unused_days` (from transcripts, only once they cover that many days). `name-only` drops the description from every request but keeps the skill callable. Uninstall removes only the entries adtok added |
+| skills | `max_desc_chars` | `0` (unset) | `skillListingMaxDescChars`: caps every listed description, for many skills with long descriptions |
+
+The `cache`, `prefix` and `max_desc_chars` layers are unmeasured, so they stay off until a benchmark run shows a lower cost per accepted task.
 
 All tool rewrites go through one `PreToolUse` dispatcher, because when two hooks rewrite the same call the last to finish wins. Rewrites copy every original input field. Nothing ever edits a message already sent, so the prompt cache survives.
 
@@ -78,7 +87,8 @@ All tool rewrites go through one `PreToolUse` dispatcher, because when two hooks
 `adtok doctor` lists every user-controlled prefix component with its token count, including adtok's own block. It then flags:
 
 - **prefix:** files over 200 lines, `@imports` (they save nothing), MEMORY.md over 200 lines or 25 KB, skill descriptions over 1,536 characters, tool search off with several MCP servers, `alwaysLoad` servers
-- **cache:** `opusplan`, skills or commands with their own `model:`, `!`-command output in CLAUDE.md, `FORCE_PROMPT_CACHING_5M`, gateways that may strip cache headers
+- **prefix:** a `CLAUDE.md` loaded from a parent folder of the project and not listed in `claudeMdExcludes`
+- **cache:** `opusplan`, skills or commands with their own `model:`, `!`-command output in CLAUDE.md, `FORCE_PROMPT_CACHING_5M`, gateways that may strip cache headers, a `promptCacheTtl` other than `5m`/`1h`, `idleCompaction` turned off
 - **safety:** another hook rewriting tool input (for example RTK), `CLAUDE_CODE_EFFORT_LEVEL` overriding per-agent effort, `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS`
 - **output and context:** effort `max`, an `outputStyle` with no file behind it, Haiku agents without the 100K window, no `autoCompactWindow`
 
@@ -106,7 +116,11 @@ Skills marked unused can be pruned with `adtok init --set skills.prune_unused=tr
 Reads `~/.claude/projects/<project>/*.jsonl` and subagent transcripts. It de-duplicates records per API response by message id and request id, skips synthetic and orphaned records, and prices 1-hour cache writes at 2× and Opus/Sonnet 5.5 cache reads at 0.05×.
 
 - `misses` flags any request whose cache write exceeds half the previous context. It names the cause: model switch, compaction, Claude Code upgrade, idle gap longer than the cache lifetime, or another prefix change.
-- `ttl` replays each conversation's real request gaps under both cache lifetimes and recommends `promptCacheTtl` / `subagentPromptCacheTtl`.
+- `ttl` replays each conversation's real request gaps under both cache lifetimes, separately for the main conversation and subagents, and prints the `adtok init --set cache.ttl=…` / `cache.subagent_ttl=…` to apply.
+- `compare` splits sessions at the install time (`installed_at` in `.claude/adtok.json`, else `~/.claude/adtok.json`; `--installed-at` overrides it) and shows sessions, requests, total, mean and median cost, cost per request and the subagent share on each side. A session counts by its first request. Sessions differ in size and task, so treat it as a trend; the benchmark is the controlled measurement. `--since-install` limits any view to requests after the install.
+- `activity` shows per session whether the layers did anything: main vs subagent requests and the subagents' cost share, compactions, and the hook actions logged to `.claude/adtok-logs/activity.jsonl` (tier hints, model-switch prompts, tool-input rewrites, handoff notes). Hooks write a line only when they act, and a failed write never blocks the hook.
+
+Manifests written before this version have no `installed_at`; the next `adtok init` adds it, or pass `--installed-at`.
 
 The transcript format is undocumented (field names observed on 2.1.29x–2.1.323).
 
